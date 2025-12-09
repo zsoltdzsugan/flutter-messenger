@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:messenger/core/services/auth_service.dart';
 import 'package:messenger/core/services/presence_service.dart';
 import 'package:messenger/core/services/user_service.dart';
@@ -13,7 +14,9 @@ class UserController {
   final UserService _user = UserService();
   final PresenceService _presence = PresenceService();
 
-  Map<String, dynamic>? currentUserData;
+  final ValueNotifier<Map<String, dynamic>?> userData = ValueNotifier(null);
+
+  Map<String, dynamic>? get currentUserData => userData.value;
 
   User? get currentUser => _auth.currentUser;
 
@@ -21,7 +24,8 @@ class UserController {
     final uid = currentUser?.uid;
     if (uid == null) return;
 
-    currentUserData = await _user.fetch(uid);
+    final data = await _user.fetch(uid);
+    userData.value = data;
   }
 
   Future<User?> register({
@@ -68,7 +72,7 @@ class UserController {
       await _presence.updateLastSeen(uid);
     }
 
-    currentUserData = null;
+    userData.value = null;
     await _auth.logout();
   }
 
@@ -89,7 +93,7 @@ class UserController {
     await _auth.delete(user);
     await _auth.logout();
 
-    currentUserData = null;
+    userData.value = null;
   }
 
   Stream<List<DocumentSnapshot>> getUsersByName(String name) {
