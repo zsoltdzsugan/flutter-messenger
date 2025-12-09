@@ -28,7 +28,7 @@ class AppTheme {
           spaceSmall: 10,
           spaceMedium: 14,
           spaceLarge: 18,
-          titleLarge: 18.0,
+          titleLarge: 20.0,
           mainButtonFontSize: 16.0,
           heroSeparatorWidth: 140,
           sidebarWidth: 300,
