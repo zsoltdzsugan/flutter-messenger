@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
+import 'package:messenger/core/theme/kWidgetColors.dart';
 
 class MainButton extends StatelessWidget {
   final String label;
@@ -11,7 +12,9 @@ class MainButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.adaptive;
     final c = context.components;
-    final colors = context.core.colors;
+
+    final bgColor = context.resolveStateColor(MainBtnColors.bg);
+    final textColor = context.resolveStateColor(MainBtnColors.text);
 
     return SizedBox(
       width: t.spacing(c.mainButtonWidth),
@@ -19,9 +22,10 @@ class MainButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           elevation: 5.0,
-          backgroundColor: colors.primary,
-          foregroundColor: colors.onPrimary,
-          side: BorderSide(color: colors.primary),
+          backgroundColor: bgColor,
+          foregroundColor: textColor,
+          overlayColor: bgColor.lighten(10),
+          side: BorderSide(color: bgColor),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,

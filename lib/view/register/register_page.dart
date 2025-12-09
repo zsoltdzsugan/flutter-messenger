@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:messenger/core/constants.dart';
 import 'package:messenger/core/controller/user.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
+import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/core/utils/app_error.dart';
 import 'package:messenger/view/home/home_page.dart';
 import 'package:messenger/widgets/buttons/secondary_button.dart';
@@ -58,9 +59,11 @@ class _RegisterPageState extends State<RegisterPage> {
     final c = context.components;
     final colors = context.core.colors;
 
+    final bgColor = context.resolveStateColor(MainBgColors.bg);
+
     return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(backgroundColor: colors.background),
+      backgroundColor: bgColor,
+      appBar: AppBar(backgroundColor: bgColor),
       body: SafeArea(
         child: Column(
           children: [
@@ -84,14 +87,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       controller: nameController,
                       keyboardType: TextInputType.name,
                       hint: "Felhasználónév",
-                      focusColor: colors.secondary,
+                      focusColor: "secondary",
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
                     AppTextField(
                       controller: emailController,
                       keyboardType: TextInputType.emailAddress,
                       hint: "Email cím",
-                      focusColor: colors.secondary,
+                      focusColor: "secondary",
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
                     AppTextField(
@@ -99,7 +102,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       keyboardType: TextInputType.visiblePassword,
                       hint: "Jelszó",
                       obscure: true,
-                      focusColor: colors.secondary,
+                      focusColor: "secondary",
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
                     SecondaryButton(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
+import 'package:messenger/core/theme/kWidgetColors.dart';
 
 class HeroHeader extends StatelessWidget {
   final String logoTag;
@@ -23,7 +24,8 @@ class HeroHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.adaptive;
     final c = context.components;
-    final colors = context.core.colors;
+
+    final textColor = context.resolveStateColor(HeroHeaderColors.text);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -41,7 +43,7 @@ class HeroHeader extends StatelessWidget {
           child: Container(
             height: 2.0,
             width: t.spacing(lineWidth),
-            color: colors.onBackground,
+            color: textColor,
           ),
         ),
         Center(
@@ -49,7 +51,7 @@ class HeroHeader extends StatelessWidget {
             animatedTitle,
             style: TextStyle(
               fontSize: t.spacing(titleSize),
-              color: colors.onBackground,
+              color: textColor,
               fontFamily: context.core.fontFamily,
               fontWeight: FontWeight.w400,
               letterSpacing: 1.25,

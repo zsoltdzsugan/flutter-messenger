@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:messenger/core/constants.dart';
 import 'package:messenger/core/controller/user.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
+import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/widgets/buttons/main_button.dart';
 import 'package:messenger/widgets/hero_header.dart';
 import 'package:messenger/widgets/input/text_field.dart';
@@ -57,9 +58,11 @@ class _LoginPageState extends State<LoginPage> {
     final c = context.components;
     final colors = context.core.colors;
 
+    final bgColor = context.resolveStateColor(MainBgColors.bg);
+
     return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(backgroundColor: colors.background),
+      backgroundColor: bgColor,
+      appBar: AppBar(backgroundColor: bgColor),
       body: SafeArea(
         child: Column(
           children: [
@@ -83,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                       controller: emailController,
                       keyboardType: TextInputType.emailAddress,
                       hint: "Email",
-                      focusColor: colors.primary,
+                      focusColor: "primary",
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
                     AppTextField(
@@ -91,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                       keyboardType: TextInputType.visiblePassword,
                       hint: "Jelszó",
                       obscure: true,
-                      focusColor: colors.primary,
+                      focusColor: "primary",
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
                     MainButton(label: "Login", onPressed: doLogin),

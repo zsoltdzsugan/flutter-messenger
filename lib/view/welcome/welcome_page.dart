@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:messenger/core/constants.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
+import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/view/login/login_page.dart';
 import 'package:messenger/view/register/register_page.dart';
 import 'package:messenger/widgets/buttons/main_button.dart';
@@ -16,14 +17,14 @@ class WelcomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.adaptive;
     final c = context.components;
-    final colors = context.core.colors;
+    final bgColor = context.resolveStateColor(MainBgColors.bg);
 
     return Scaffold(
-      backgroundColor: colors.background,
+      backgroundColor: bgColor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         automaticallyImplyActions: false,
-        backgroundColor: colors.background,
+        backgroundColor: bgColor,
       ),
       body: SafeArea(
         child: Column(
