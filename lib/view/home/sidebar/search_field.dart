@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
+import 'package:messenger/core/theme/kWidgetColors.dart';
 
 class SearchField extends StatefulWidget {
   final void Function(String)? onQueryChanged;
@@ -56,38 +57,34 @@ class _SearchFieldState extends State<SearchField> {
   Widget build(BuildContext context) {
     final t = context.adaptive;
     final c = context.components;
-    final colors = context.core.colors;
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    late final Color textColor;
 
-    final bgColor = _isFocused ? colors.primary : colors.primary.withAlpha(50);
-
-    if (_isFocused) {
-      textColor = colors.onPrimary;
-    } else {
-      textColor = isDark ? colors.textPrimary : colors.textSecondary;
-    }
+    final bgColor = context.resolveStateColor(
+      SearchBtnColors.bg,
+      isSelected: _isFocused,
+    );
+    final textColor = context.resolveStateColor(
+      SearchBtnColors.text,
+      isSelected: _isFocused,
+    );
+    final hintColor = context.resolveStateColor(
+      SearchBtnColors.hint,
+      isSelected: _isFocused,
+    );
 
     return Material(
       elevation: _isFocused ? 5.0 : 0.0,
       child: TextField(
         controller: _controller,
         focusNode: _focusNode,
-        cursorColor: colors.textPrimary,
+        cursorColor: textColor,
         cursorHeight: t.font(16),
-        style: TextStyle(
-          color: !_isFocused
-              ? colors.textPrimary
-              : isDark
-              ? colors.textPrimary
-              : colors.textSecondary,
-        ),
+        style: TextStyle(color: textColor),
         decoration: InputDecoration(
           filled: true,
           fillColor: bgColor,
           hintText: 'Keresés...',
           hintStyle: TextStyle(
-            color: _isFocused ? textColor.withAlpha(100) : textColor,
+            color: hintColor,
             fontSize: t.font(14),
             fontFeatures: [FontFeature.enable('smcp')],
             letterSpacing: 1.25,
@@ -108,9 +105,7 @@ class _SearchFieldState extends State<SearchField> {
                   ),
                 )
               : null,
-          suffixIconColor: _isFocused
-              ? colors.textSecondary
-              : colors.textPrimary,
+          suffixIconColor: textColor,
           border: InputBorder.none,
           focusedBorder: InputBorder.none,
           enabledBorder: InputBorder.none,

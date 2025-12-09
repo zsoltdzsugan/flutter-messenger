@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:messenger/core/controller/conversation.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
+import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/view/home/sidebar/container.dart';
 import 'package:messenger/view/home/sidebar/filter.dart';
 
@@ -38,10 +39,11 @@ class _HomeTabletLayoutState extends State<HomeTabletLayout> {
     final t = context.adaptive;
     final c = context.components;
     final colors = context.core.colors;
-    print(MediaQuery.of(context).size.width);
+
+    final bgColors = context.resolveStateColor(MainBgColors.bg);
 
     return Scaffold(
-      backgroundColor: colors.background,
+      backgroundColor: bgColors,
       body: SafeArea(
         child: Row(
           children: [

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
+import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/view/home/sidebar/filter.dart';
 import 'package:messenger/view/home/sidebar/filter_bar.dart';
 import 'package:messenger/view/home/sidebar/header.dart';
@@ -46,11 +47,10 @@ class _SidebarContainerState extends State<SidebarContainer> {
     final colors = context.core.colors;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final bgColor = context.resolveStateColor(MainBgColors.bg);
+
     return Container(
-      decoration: BoxDecoration(
-        color: isDark ? colors.secondary.withAlpha(100) : colors.divider,
-        border: Border(right: BorderSide(color: colors.primary.withAlpha(100))),
-      ),
+      decoration: BoxDecoration(color: bgColor),
       child: Column(
         children: [
           SidebarHeader(
