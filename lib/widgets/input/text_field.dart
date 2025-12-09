@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
+import 'package:messenger/core/theme/kWidgetColors.dart';
 
 class AppTextField extends StatefulWidget {
   final TextEditingController controller;
   final TextInputType keyboardType;
   final String hint;
   final bool obscure;
-  final Color focusColor;
+  final String focusColor;
 
   const AppTextField({
     super.key,
@@ -14,7 +15,7 @@ class AppTextField extends StatefulWidget {
     required this.keyboardType,
     required this.hint,
     this.obscure = false,
-    this.focusColor = Colors.transparent,
+    this.focusColor = "primary",
   });
 
   @override
@@ -44,22 +45,24 @@ class _AppTextFieldState extends State<AppTextField> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.core.colors;
     final t = context.adaptive;
     final c = context.components;
     final bool isFocused = _focusNode.hasFocus;
 
-    final Color bgColor = isFocused
-        ? Colors.white
-        : widget.focusColor.withAlpha(50);
-
-    final Color hintColor = isFocused
-        ? colors.textSecondary
-        : colors.onBackground;
-
-    final Color inputColor = isFocused
-        ? colors.textSecondary
-        : colors.onBackground;
+    final bgColor = context.resolveStateColor(
+      widget.focusColor == "primary"
+          ? AuthInputColors.bgPrimary
+          : AuthInputColors.bgSecondary,
+      isSelected: isFocused,
+    );
+    final textColor = context.resolveStateColor(
+      AuthInputColors.text,
+      isSelected: isFocused,
+    );
+    final hintColor = context.resolveStateColor(
+      AuthInputColors.hint,
+      isSelected: isFocused,
+    );
 
     return SizedBox(
       width: t.spacing(c.mainButtonWidth),
@@ -69,18 +72,18 @@ class _AppTextFieldState extends State<AppTextField> {
         focusNode: _focusNode,
         keyboardType: widget.keyboardType,
         obscureText: _isObscured,
-        cursorColor: widget.focusColor,
+        cursorColor: textColor,
         cursorHeight: t.font(16),
         textAlignVertical: TextAlignVertical(y: 0.75),
         style: TextStyle(
-          color: inputColor,
+          color: textColor,
           fontSize: t.font(14),
           fontFamily: context.core.fontFamily,
         ),
         decoration: InputDecoration(
           filled: true,
           fillColor: bgColor,
-          suffixIconColor: hintColor,
+          suffixIconColor: textColor,
           suffixIcon: widget.obscure
               ? Padding(
                   padding: const EdgeInsets.only(top: 2, right: 6),
@@ -107,19 +110,19 @@ class _AppTextFieldState extends State<AppTextField> {
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
             ),
-            borderSide: BorderSide(color: colors.divider),
+            borderSide: BorderSide(color: textColor),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
             ),
-            borderSide: BorderSide(color: colors.divider),
+            borderSide: BorderSide(color: textColor),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
             ),
-            borderSide: BorderSide(color: widget.focusColor),
+            borderSide: BorderSide(color: textColor),
           ),
         ),
       ),
