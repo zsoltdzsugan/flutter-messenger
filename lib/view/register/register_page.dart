@@ -7,7 +7,7 @@ import 'package:messenger/core/utils/app_error.dart';
 import 'package:messenger/view/home/home_page.dart';
 import 'package:messenger/widgets/buttons/secondary_button.dart';
 import 'package:messenger/widgets/hero_header.dart';
-import 'package:messenger/widgets/input/text_field.dart';
+import 'package:messenger/widgets/input/auth_text_field.dart';
 
 class RegisterPage extends StatefulWidget {
   static const String route = "RegisterPage";
@@ -83,21 +83,21 @@ class _RegisterPageState extends State<RegisterPage> {
               child: Center(
                 child: Column(
                   children: [
-                    AppTextField(
+                    AuthTextField(
                       controller: nameController,
                       keyboardType: TextInputType.name,
                       hint: "Felhasználónév",
                       focusColor: "secondary",
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
-                    AppTextField(
+                    AuthTextField(
                       controller: emailController,
                       keyboardType: TextInputType.emailAddress,
                       hint: "Email cím",
                       focusColor: "secondary",
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
-                    AppTextField(
+                    AuthTextField(
                       controller: passwordController,
                       keyboardType: TextInputType.visiblePassword,
                       hint: "Jelszó",

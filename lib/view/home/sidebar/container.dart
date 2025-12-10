@@ -44,9 +44,6 @@ class _SidebarContainerState extends State<SidebarContainer> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.core.colors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final bgColor = context.resolveStateColor(MainBgColors.bg);
 
     return Container(

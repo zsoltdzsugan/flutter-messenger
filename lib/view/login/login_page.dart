@@ -5,7 +5,7 @@ import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/widgets/buttons/main_button.dart';
 import 'package:messenger/widgets/hero_header.dart';
-import 'package:messenger/widgets/input/text_field.dart';
+import 'package:messenger/widgets/input/auth_text_field.dart';
 
 class LoginPage extends StatefulWidget {
   static const String route = "LoginPage";
@@ -82,14 +82,14 @@ class _LoginPageState extends State<LoginPage> {
               child: Center(
                 child: Column(
                   children: [
-                    AppTextField(
+                    AuthTextField(
                       controller: emailController,
                       keyboardType: TextInputType.emailAddress,
                       hint: "Email",
                       focusColor: "primary",
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
-                    AppTextField(
+                    AuthTextField(
                       controller: passwordController,
                       keyboardType: TextInputType.visiblePassword,
                       hint: "Jelszó",
