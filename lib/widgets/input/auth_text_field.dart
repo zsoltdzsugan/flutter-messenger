@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
 
-class AppTextField extends StatefulWidget {
+class AuthTextField extends StatefulWidget {
   final TextEditingController controller;
   final TextInputType keyboardType;
   final String hint;
   final bool obscure;
   final String focusColor;
 
-  const AppTextField({
+  const AuthTextField({
     super.key,
     required this.controller,
     required this.keyboardType,
@@ -19,10 +19,10 @@ class AppTextField extends StatefulWidget {
   });
 
   @override
-  State<AppTextField> createState() => _AppTextFieldState();
+  State<AuthTextField> createState() => _AuthTextFieldState();
 }
 
-class _AppTextFieldState extends State<AppTextField> {
+class _AuthTextFieldState extends State<AuthTextField> {
   late bool _isObscured;
   late FocusNode _focusNode;
 
