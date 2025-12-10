@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:messenger/core/controller/user.dart';
+import 'package:messenger/core/enums/icon_state.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/core/theme/provider.dart';
-import 'package:messenger/widgets/buttons/animated_filter_button.dart';
-import 'package:messenger/widgets/input/text_field.dart';
+import 'package:messenger/widgets/input/app_text_field.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -19,7 +19,9 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   late final TextEditingController nameController;
-  var test = false;
+  IconState suffixState = IconState.idle;
+  bool _isDeleteAccountHovered = false;
+  bool _isLogoutHovered = false;
 
   @override
   void initState() {
@@ -29,11 +31,31 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _saveName() async {
+    setState(() {
+      suffixState = IconState.saving;
+    });
     final user = UserController.instance.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      setState(() {
+        suffixState = IconState.error;
+      });
+      _resetSuffix();
+      return;
+    }
 
-    await UserController.instance.update({'name': nameController.text.trim()});
-    setState(() {});
+    try {
+      await UserController.instance.update({
+        'name': nameController.text.trim(),
+      });
+      setState(() {
+        suffixState = IconState.success;
+      });
+    } catch (e) {
+      setState(() {
+        suffixState = IconState.error;
+      });
+    }
+    _resetSuffix();
   }
 
   Future<void> _logout() async {
@@ -42,14 +64,51 @@ class _SettingsPageState extends State<SettingsPage> {
     Navigator.pushNamedAndRemoveUntil(context, 'WelcomePage', (_) => false);
   }
 
+  void _resetSuffix() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          suffixState = IconState.idle;
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.adaptive;
     final c = context.components;
-    final colors = context.core.colors;
 
     final bgColor = context.resolveStateColor(MainBgColors.bg);
     final textColor = context.resolveStateColor(SettingsPageColors.text);
+
+    final switchBgActive = context.resolveStateColor(
+      ThemeSwitchColors.bgActive,
+    );
+    final switchBgInactive = context.resolveStateColor(
+      ThemeSwitchColors.bgInactive,
+    );
+    final switchThumbActive = context.resolveStateColor(
+      ThemeSwitchColors.thumbActive,
+    );
+    final switchThumbInactive = context.resolveStateColor(
+      ThemeSwitchColors.thumbInactive,
+    );
+    final switchOutline = context.resolveStateColor(ThemeSwitchColors.outline);
+
+    final deleteTextColor = context.resolveStateColor(
+      DeleteAccountColors.text,
+      isSelected: _isDeleteAccountHovered,
+    );
+
+    final logoutBgColor = context.resolveStateColor(
+      LogoutBtnColors.bg,
+      isSelected: _isLogoutHovered,
+    );
+    final logoutTextColor = context.resolveStateColor(
+      LogoutBtnColors.text,
+      isSelected: _isLogoutHovered,
+    );
 
     return Container(
       decoration: BoxDecoration(color: bgColor),
@@ -88,13 +147,10 @@ class _SettingsPageState extends State<SettingsPage> {
             controller: nameController,
             keyboardType: TextInputType.name,
             focusColor: "primary",
-            hint: '',
+            hint: 'Felhasználónév',
+            state: suffixState,
+            onPressed: _saveName,
           ),
-
-          SizedBox(height: t.spacing(c.spaceMedium)),
-
-          IconButton(onPressed: _saveName, icon: Icon(Icons.save)),
-          ElevatedButton(onPressed: _saveName, child: Text("Mentés")),
 
           SizedBox(height: t.spacing(c.spaceMedium)),
 
@@ -114,6 +170,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
 
                 Switch(
+                  activeTrackColor: switchBgActive,
+                  activeThumbColor: switchThumbActive,
+                  inactiveTrackColor: switchBgInactive,
+                  inactiveThumbColor: switchThumbInactive,
+                  trackOutlineColor: WidgetStateProperty.all(switchOutline),
                   value: Theme.of(context).brightness == Brightness.dark,
                   onChanged: (val) {
                     final theme = context.read<ThemeProvider>();
@@ -124,38 +185,43 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
 
-          AnimatedFilterButton(
-            label: 'label',
-            icon: Icons.tab,
-            isSelected: test,
-            onTap: () {
-              setState(() {
-                test = !test;
-              });
-            },
-          ),
           Spacer(),
 
-          GestureDetector(
-            onTap: () async {
-              await UserController.instance.delete();
-              // Navigate back to welcome/login
-              if (!mounted) return;
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                'WelcomePage',
-                (_) => false,
-              );
-            },
-            child: Container(
-              padding: EdgeInsets.all(t.spacing(c.spaceMedium)),
-              color: colors.danger.withAlpha(150),
-              child: Center(
-                child: Text(
-                  "Fiók törlése",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+          Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: t.spacing(c.spaceSmall)),
+              child: MouseRegion(
+                onEnter: (_) => setState(() => _isDeleteAccountHovered = true),
+                onExit: (_) => setState(() => _isDeleteAccountHovered = false),
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () async {
+                    await UserController.instance.delete();
+                    // Navigate back to welcome/login
+                    if (!mounted) return;
+
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      'WelcomePage',
+                      (_) => false,
+                    );
+                  },
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Icon(Icons.delete_rounded, color: deleteTextColor),
+                      SizedBox(width: t.spacing(c.spaceXSmall)),
+                      Text(
+                        "Fiók törlése",
+                        style: TextStyle(
+                          color: deleteTextColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: t.font(10),
+                          fontFeatures: [FontFeature.enable('smcp')],
+                          letterSpacing: 1.25,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -163,20 +229,24 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
 
           MouseRegion(
+            onEnter: (_) => setState(() => _isLogoutHovered = true),
+            onExit: (_) => setState(() => _isLogoutHovered = false),
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
               onTap: _logout,
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(t.spacing(c.spaceMedium)),
-                color: colors.danger,
+                color: logoutBgColor,
                 child: Center(
                   child: Text(
                     "Kijelentkezés",
                     style: TextStyle(
-                      color: Colors.white,
+                      color: logoutTextColor,
                       fontSize: t.font(14),
                       fontWeight: FontWeight.bold,
+                      fontFeatures: [FontFeature.enable('smcp')],
+                      letterSpacing: 1.25,
                     ),
                   ),
                 ),
