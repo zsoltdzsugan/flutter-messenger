@@ -15,17 +15,18 @@ class MainButton extends StatelessWidget {
 
     final bgColor = context.resolveStateColor(MainBtnColors.bg);
     final textColor = context.resolveStateColor(MainBtnColors.text);
+    final borderColor = context.resolveStateColor(MainBtnColors.border);
 
     return SizedBox(
       width: t.spacing(c.mainButtonWidth),
       height: t.spacing(c.mainButtonHeight),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          elevation: 5.0,
+          elevation: 10.0,
           backgroundColor: bgColor,
           foregroundColor: textColor,
           overlayColor: bgColor.lighten(10),
-          side: BorderSide(color: bgColor),
+          side: BorderSide(color: borderColor),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
