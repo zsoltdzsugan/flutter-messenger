@@ -7,14 +7,26 @@ import 'package:messenger/core/services/user_service.dart';
 import 'package:messenger/core/utils/app_error.dart';
 
 class UserController {
-  UserController._privateController();
+  UserController._privateController() {
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user == null) {
+        userData.value = null;
+        _presence.stop();
+      } else {
+        getCurrentUserData();
+        _presence.start();
+      }
+    });
+  }
+
   static final UserController instance = UserController._privateController();
 
   final AuthService _auth = AuthService();
   final UserService _user = UserService();
-  final PresenceService _presence = PresenceService();
+  final PresenceService _presence = PresenceService.instance;
 
   final ValueNotifier<Map<String, dynamic>?> userData = ValueNotifier(null);
+  final ValueNotifier<bool> isLoading = ValueNotifier(false);
 
   Map<String, dynamic>? get currentUserData => userData.value;
 
@@ -24,8 +36,12 @@ class UserController {
     final uid = currentUser?.uid;
     if (uid == null) return;
 
+    isLoading.value = true;
+
     final data = await _user.fetch(uid);
     userData.value = data;
+
+    isLoading.value = false;
   }
 
   Future<User?> register({
@@ -60,18 +76,12 @@ class UserController {
     final user = await _auth.login(email, password);
     if (user == null) return;
 
-    await _presence.updateOnline(user.uid, true);
-    await _presence.updateLastSeen(user.uid);
+    _presence.start();
     await getCurrentUserData();
   }
 
   Future<void> logout() async {
-    final uid = currentUser?.uid;
-    if (uid != null) {
-      await _presence.updateOnline(uid, false);
-      await _presence.updateLastSeen(uid);
-    }
-
+    _presence.stop();
     userData.value = null;
     await _auth.logout();
   }
@@ -88,7 +98,7 @@ class UserController {
     final user = currentUser;
     if (user == null) return;
 
-    await _presence.updateOnline(user.uid, false);
+    _presence.stop();
     await _user.delete(user.uid);
     await _auth.delete(user);
     await _auth.logout();
