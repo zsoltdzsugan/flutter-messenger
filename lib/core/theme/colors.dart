@@ -134,6 +134,18 @@ class AppColors {
   Color get danger90 => _tone(danger, 90);
   Color get danger100 => _tone(danger, 100);
 
+  // ---------- TEXT SECONDARY ----------
+  Color get textSecondary10 => _tone(textSecondary, 10);
+  Color get textSecondary20 => _tone(textSecondary, 20);
+  Color get textSecondary30 => _tone(textSecondary, 30);
+  Color get textSecondary40 => _tone(textSecondary, 40);
+  Color get textSecondary50 => _tone(textSecondary, 50);
+  Color get textSecondary60 => _tone(textSecondary, 60);
+  Color get textSecondary70 => textSecondary;
+  Color get textSecondary80 => _tone(textSecondary, 80);
+  Color get textSecondary90 => _tone(textSecondary, 90);
+  Color get textSecondary100 => _tone(textSecondary, 100);
+
   // ---------- TONE SHIFT ----------
   Color _tone(Color base, int t) {
     final hsv = HSVColor.fromColor(base);

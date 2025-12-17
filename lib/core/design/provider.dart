@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:messenger/core/design/devices.dart';
 import 'package:messenger/core/design/tokens/accessibility.dart';
+import 'package:messenger/core/enums/devices.dart';
 
 class DesignProvider extends ChangeNotifier {
-  DeviceClass device = DeviceClass.mobile;
+  DeviceType device = DeviceType.mobile;
   AccessibilitySettings accessibilitySettings = AccessibilitySettings(
     textScale: 1.0,
     highContrast: false,

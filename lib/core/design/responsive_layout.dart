@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:messenger/core/design/devices.dart';
+import 'package:messenger/core/enums/devices.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 
 class ResponsiveLayout extends StatelessWidget {
@@ -19,9 +19,9 @@ class ResponsiveLayout extends StatelessWidget {
     final device = context.adaptive.device;
 
     return switch (device) {
-      DeviceClass.mobile => mobile,
-      DeviceClass.tablet => tablet,
-      DeviceClass.desktop => desktop,
+      DeviceType.mobile => mobile,
+      DeviceType.tablet => tablet,
+      DeviceType.desktop => desktop,
     };
   }
 }

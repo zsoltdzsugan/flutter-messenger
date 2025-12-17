@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:messenger/core/design/breakpoints.dart';
-import 'package:messenger/core/design/devices.dart';
+import 'package:messenger/core/enums/devices.dart';
 
 class AdaptiveTokens {
-  final DeviceClass device;
+  final DeviceType device;
   final Breakpoint breakpoint;
   final double spacingScale;
   final double typographyScale;
@@ -27,13 +27,13 @@ AdaptiveTokens resolveAdaptiveTokens(BuildContext context) {
   final width = size.width;
   final height = size.height;
 
-  late DeviceClass device;
+  late DeviceType device;
   if (width >= 900 && height >= 700) {
-    device = DeviceClass.desktop;
+    device = DeviceType.desktop;
   } else if (width >= 600 && height >= 500) {
-    device = DeviceClass.tablet;
+    device = DeviceType.tablet;
   } else {
-    device = DeviceClass.mobile;
+    device = DeviceType.mobile;
   }
 
   final breakpoint = resolveBreakpoint(width, height);

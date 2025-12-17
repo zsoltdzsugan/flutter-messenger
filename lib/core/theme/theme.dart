@@ -16,6 +16,7 @@ class AppTheme {
           baseRadius: 12,
           colors: AppColors.light,
           gridUnit: 4,
+          logoPath: 'images/mainlogo_l.png',
         ),
         ComponentTokens(
           mainButtonWidth: 400,
@@ -50,6 +51,7 @@ class AppTheme {
           baseRadius: 12,
           colors: AppColors.dark,
           gridUnit: 4,
+          logoPath: 'images/mainlogo_d.png',
         ),
         ComponentTokens(
           mainButtonWidth: 400,

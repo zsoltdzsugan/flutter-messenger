@@ -7,12 +7,14 @@ class CoreTokens extends ThemeExtension<CoreTokens> {
   final double baseRadius;
   final AppColors colors;
   final int gridUnit;
+  final String logoPath;
 
   const CoreTokens({
     required this.fontFamily,
     required this.baseRadius,
     required this.colors,
     required this.gridUnit,
+    required this.logoPath,
   });
 
   @override
@@ -21,12 +23,14 @@ class CoreTokens extends ThemeExtension<CoreTokens> {
     double? baseRadius,
     AppColors? colors,
     int? gridUnit,
+    String? logoPath,
   }) {
     return CoreTokens(
       fontFamily: fontFamily ?? this.fontFamily,
       baseRadius: baseRadius ?? this.baseRadius,
       colors: colors ?? this.colors,
       gridUnit: gridUnit ?? this.gridUnit,
+      logoPath: logoPath ?? this.logoPath,
     );
   }
 
@@ -41,6 +45,7 @@ class CoreTokens extends ThemeExtension<CoreTokens> {
       baseRadius: other.baseRadius,
       colors: other.colors,
       gridUnit: other.gridUnit,
+      logoPath: other.logoPath,
     );
   }
 }
