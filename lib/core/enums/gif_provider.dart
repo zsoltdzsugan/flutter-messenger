@@ -1,0 +1,1 @@
+enum GifProvider { giphy, tenor }
