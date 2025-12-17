@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:image_picker/image_picker.dart';
 
-class ImagePickerService {
+class ImageService {
   static final _picker = ImagePicker();
 
   static Future<List<File>> pickMultipleImages() async {
