@@ -114,7 +114,7 @@ class _SettingsPageState extends State<SettingsPage> {
       decoration: BoxDecoration(color: bgColor),
       padding: EdgeInsets.symmetric(
         vertical: t.spacing(c.spaceSmall),
-        horizontal: t.spacing(c.spaceSmall),
+        horizontal: t.spacing(c.spaceXSmall),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,7 +189,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
           Center(
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: t.spacing(c.spaceSmall)),
+              padding: EdgeInsets.symmetric(vertical: t.spacing(c.spaceXSmall)),
               child: MouseRegion(
                 onEnter: (_) => setState(() => _isDeleteAccountHovered = true),
                 onExit: (_) => setState(() => _isDeleteAccountHovered = false),
@@ -210,7 +210,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Icon(Icons.delete_rounded, color: deleteTextColor),
-                      SizedBox(width: t.spacing(c.spaceXSmall)),
+                      SizedBox(width: t.spacing(c.spaceXSmall / 2)),
                       Text(
                         "Fiók törlése",
                         style: TextStyle(
@@ -236,8 +236,17 @@ class _SettingsPageState extends State<SettingsPage> {
               onTap: _logout,
               child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(t.spacing(c.spaceMedium)),
-                color: logoutBgColor,
+                padding: EdgeInsets.symmetric(
+                  horizontal: t.spacing(c.spaceMedium),
+                  vertical: t.spacing(c.spaceXSmall),
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(
+                    context.core.baseRadius * t.radiusScale,
+                  ),
+                  border: Border.all(color: logoutBgColor, width: 1),
+                  color: logoutBgColor,
+                ),
                 child: Center(
                   child: Text(
                     "Kijelentkezés",
