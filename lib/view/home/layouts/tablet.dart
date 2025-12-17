@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:messenger/core/controller/conversation.dart';
+import 'package:messenger/core/controller/user.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
+import 'package:messenger/view/home/chat/container.dart';
 import 'package:messenger/view/home/sidebar/container.dart';
 import 'package:messenger/view/home/sidebar/filter.dart';
 
@@ -19,31 +20,19 @@ class _HomeTabletLayoutState extends State<HomeTabletLayout> {
   String _query = '';
   DocumentReference? _selectedConversation;
 
+  DocumentReference? _activeConversation;
+  String? _otherUserId;
+
   // search controller + cache
   final TextEditingController _search = TextEditingController();
   final Map<String, Map<String, dynamic>> _usersCache = {};
 
   @override
-  void initState() {
-    super.initState();
-    _loadLatestConversation();
-  }
-
-  Future<void> _loadLatestConversation() async {
-    final ref = await ConversationController.instance.loadLatestConversation();
-    setState(() => _selectedConversation = ref);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final t = context.adaptive;
-    final c = context.components;
-    final colors = context.core.colors;
-
-    final bgColors = context.resolveStateColor(MainBgColors.bg);
+    final bgColor = context.resolveStateColor(MainBgColors.bg);
 
     return Scaffold(
-      backgroundColor: bgColors,
+      backgroundColor: bgColor,
       body: SafeArea(
         child: Row(
           children: [
@@ -55,8 +44,20 @@ class _HomeTabletLayoutState extends State<HomeTabletLayout> {
                 searchController: _search,
                 onSearchChanged: (q) => setState(() => _query = q),
                 usersCache: _usersCache,
-                onConversationSelected: (ref) {
-                  setState(() => _selectedConversation = ref);
+                onConversationSelected: (ref) async {
+                  final snap = await ref.get();
+                  final data = snap.data() as Map<String, dynamic>;
+
+                  final participants = List<String>.from(data["participants"]);
+                  final currentId = UserController.instance.currentUser!.uid;
+                  final otherId = participants.firstWhere(
+                    (id) => id != currentId,
+                  );
+
+                  setState(() {
+                    _activeConversation = ref;
+                    _otherUserId = otherId;
+                  });
                 },
                 onCacheUpdate: (uid, data) {
                   setState(() => _usersCache[uid] = data);
@@ -66,10 +67,12 @@ class _HomeTabletLayoutState extends State<HomeTabletLayout> {
 
             Expanded(
               flex: 5,
-              child: _selectedConversation == null
+              child: _activeConversation == null
                   ? const Center(child: Text("Válassz egy beszélgetést"))
-                  : const Placeholder(),
-              //: ChatScreen(conversationRef: _selectedConversation!),
+                  : ChatContainer(
+                      conversationId: _activeConversation?.id ?? '',
+                      otherUserId: _otherUserId ?? '',
+                    ),
             ),
           ],
         ),
