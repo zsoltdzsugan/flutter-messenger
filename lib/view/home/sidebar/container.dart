@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:messenger/core/controller/conversation.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/view/home/sidebar/filter.dart';
@@ -37,9 +38,31 @@ class SidebarContainer extends StatefulWidget {
 
 class _SidebarContainerState extends State<SidebarContainer> {
   bool _showSettings = false;
+  bool _isSidebarCollapsed = false;
+  DocumentReference? _activeConversation;
+
+  Future<void> _handleUserTap(
+    String userId,
+    Map<String, dynamic> userData,
+  ) async {
+    final conv = await ConversationController.instance.getConversation(userId);
+
+    widget.onCacheUpdate(userId, userData);
+    widget.onConversationSelected(conv);
+  }
+
+  void _handleConversationTap(DocumentReference conv) {
+    widget.onConversationSelected(conv);
+  }
 
   void _toggleSettings() {
     setState(() => _showSettings = !_showSettings);
+  }
+
+  void _toggleSidebar() {
+    setState(() {
+      _isSidebarCollapsed = !_isSidebarCollapsed;
+    });
   }
 
   @override
@@ -52,7 +75,9 @@ class _SidebarContainerState extends State<SidebarContainer> {
         children: [
           SidebarHeader(
             settingsOpen: _showSettings,
+            sidebarCollapsed: _isSidebarCollapsed,
             onSettingsTap: _toggleSettings,
+            onSidebarToggle: _toggleSidebar,
           ),
 
           Expanded(
@@ -74,8 +99,9 @@ class _SidebarContainerState extends State<SidebarContainer> {
                           filter: widget.filter,
                           query: widget.searchController.text,
                           usersCache: widget.usersCache,
-                          onConversationSelected: widget.onConversationSelected,
+                          onConversationSelected: _handleConversationTap,
                           onCacheUpdate: widget.onCacheUpdate,
+                          onUserSelected: _handleUserTap,
                         ),
                       ),
                     ],

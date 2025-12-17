@@ -71,50 +71,53 @@ class _SearchFieldState extends State<SearchField> {
       isSelected: _isFocused,
     );
 
-    return Material(
-      elevation: _isFocused ? 5.0 : 0.0,
-      child: TextField(
-        controller: _controller,
-        focusNode: _focusNode,
-        cursorColor: textColor,
-        cursorHeight: t.font(16),
-        style: TextStyle(color: textColor),
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: bgColor,
-          hintText: 'Keresés...',
-          hintStyle: TextStyle(
-            color: hintColor,
-            fontSize: t.font(14),
-            fontFeatures: [FontFeature.enable('smcp')],
-            letterSpacing: 1.25,
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: t.spacing(c.spaceXSmall)),
+      child: Material(
+        elevation: _isFocused ? 5.0 : 0.0,
+        child: TextField(
+          controller: _controller,
+          focusNode: _focusNode,
+          cursorColor: textColor,
+          cursorHeight: t.font(16),
+          style: TextStyle(color: textColor),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: bgColor,
+            hintText: 'Keresés...',
+            hintStyle: TextStyle(
+              color: hintColor,
+              fontSize: t.font(14),
+              fontFeatures: [FontFeature.enable('smcp')],
+              letterSpacing: 1.25,
+            ),
+            suffixIcon: _controller.text.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 4.0),
+                    child: IconButton(
+                      onPressed: () {
+                        _controller.clear();
+                        widget.onQueryChanged?.call('');
+                        setState(() {
+                          searchResults = null;
+                        });
+                      },
+                      icon: Icon(Icons.close_rounded),
+                      iconSize: t.font(c.avatarSize),
+                    ),
+                  )
+                : null,
+            suffixIconColor: textColor,
+            border: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            contentPadding: EdgeInsets.only(
+              left: t.spacing(c.spaceSmall),
+              top: t.spacing(c.spaceMedium),
+              bottom: t.spacing(c.spaceMedium),
+            ),
+            isDense: true,
           ),
-          suffixIcon: _controller.text.isNotEmpty
-              ? Padding(
-                  padding: const EdgeInsets.only(right: 4.0),
-                  child: IconButton(
-                    onPressed: () {
-                      _controller.clear();
-                      widget.onQueryChanged?.call('');
-                      setState(() {
-                        searchResults = null;
-                      });
-                    },
-                    icon: Icon(Icons.close_rounded),
-                    iconSize: t.font(c.avatarSize),
-                  ),
-                )
-              : null,
-          suffixIconColor: textColor,
-          border: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          contentPadding: EdgeInsets.only(
-            left: t.spacing(c.spaceSmall),
-            top: t.spacing(c.spaceMedium),
-            bottom: t.spacing(c.spaceMedium),
-          ),
-          isDense: true,
         ),
       ),
     );

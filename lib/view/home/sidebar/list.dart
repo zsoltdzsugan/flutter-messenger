@@ -9,14 +9,17 @@ class SidebarList extends StatelessWidget {
   final String query;
 
   final Map<String, Map<String, dynamic>> usersCache;
-  final ValueChanged<DocumentReference> onConversationSelected;
   final void Function(String uid, Map<String, dynamic> data) onCacheUpdate;
+  final void Function(DocumentReference) onConversationSelected;
+  final void Function(String userId, Map<String, dynamic> userData)
+  onUserSelected;
 
   const SidebarList({
     super.key,
     required this.filter,
     required this.query,
     required this.usersCache,
+    required this.onUserSelected,
     required this.onConversationSelected,
     required this.onCacheUpdate,
   });
@@ -44,23 +47,24 @@ class SidebarList extends StatelessWidget {
       builder: (context, snapshot) {
         final docs = snapshot.data ?? [];
 
+        if (docs.isEmpty) {
+          return const Center(child: Text('Nincs találat!'));
+        }
+
         return ListView.builder(
           padding: EdgeInsets.zero,
           itemCount: docs.length,
           itemBuilder: (_, i) {
-            final user = docs[i].data() as Map<String, dynamic>?;
+            final userData = docs[i].data() as Map<String, dynamic>;
 
             return ListTile(
               leading: const CircleAvatar(radius: 22),
-              title: Text(user?['name'] ?? ''),
+              title: Text(userData['name'] ?? ''),
               subtitle: Text(
-                (user?['is_online'] ?? false) ? 'Elérhető' : 'Nem elérhető',
+                (userData['is_online'] ?? false) ? 'Elérhető' : 'Nem elérhető',
               ),
-              onTap: () async {
-                final conversationRef = await ConversationController.instance
-                    .getConversation(docs[i].id);
-
-                onConversationSelected(conversationRef);
+              onTap: () {
+                return onUserSelected(docs[i].id, userData);
               },
             );
           },
@@ -72,31 +76,31 @@ class SidebarList extends StatelessWidget {
   // ───────────────────────────────────────────────
   // CONVERSATIONS LIST
   // ───────────────────────────────────────────────
+
   Widget _buildConversations(BuildContext context) {
-    final convController = ConversationController.instance;
     final userController = UserController.instance;
 
     return StreamBuilder<List<DocumentSnapshot>>(
-      stream: convController.getUserConversations(),
+      stream: ConversationController.instance.getUserConversations(),
       builder: (context, snapshot) {
         final docs = snapshot.data ?? [];
+
+        if (docs.isEmpty) {
+          return const Center(child: Text('Nincs üzenet'));
+        }
 
         return ListView.builder(
           padding: EdgeInsets.zero,
           itemCount: docs.length,
           itemBuilder: (_, i) {
             final doc = docs[i];
-            final data = doc.data() as Map<String, dynamic>?;
-
-            if (data == null || !data.containsKey("participants")) {
-              return const SizedBox.shrink();
-            }
+            final data = doc.data() as Map<String, dynamic>;
 
             final participants = List<String>.from(data["participants"]);
             final currentId = userController.currentUser!.uid;
             final otherId = participants.firstWhere((id) => id != currentId);
-
             final cached = usersCache[otherId];
+
             if (cached == null) {
               userController.getUserById(otherId).then((snap) {
                 final userData = snap.data() as Map<String, dynamic>?;
