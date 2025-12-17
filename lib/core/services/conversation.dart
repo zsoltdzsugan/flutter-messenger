@@ -1,25 +1,30 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:messenger/core/models/message.dart';
 
 class ConversationService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final _db = FirebaseFirestore.instance;
 
-  // Creates a new conversation doc
+  CollectionReference<Map<String, dynamic>> _messages(String cid) =>
+      _db.collection('conversations').doc(cid).collection('messages');
+
+  // ─────────────────────────────────────────────
+  // CONVERSATIONS
+  // ─────────────────────────────────────────────
+
   Future<DocumentReference> createConversation(List<String> participants) {
     participants.sort();
 
-    return _firestore.collection('conversations').add({
+    return _db.collection('conversations').add({
       'participants': participants,
       'last_message': '',
-      'last_message_timestamp': '',
-      'unread_by': participants.skip(1).toList(),
+      'last_message_timestamp': null,
       'created_at': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),
     });
   }
 
-  // Loads all conversations for a user
   Stream<List<DocumentSnapshot>> getUserConversations(String uid) {
-    return _firestore
+    return _db
         .collection('conversations')
         .where('participants', arrayContains: uid)
         .orderBy('last_message_timestamp', descending: true)
@@ -27,52 +32,66 @@ class ConversationService {
         .map((s) => s.docs);
   }
 
-  // Searches for an existing conversation
   Future<List<DocumentSnapshot>> findUserConversations(String uid) async {
-    final snap = await _firestore
+    final snap = await _db
         .collection('conversations')
         .where('participants', arrayContains: uid)
         .get();
+
     return snap.docs;
   }
 
-  // Send message
-  Future<void> sendMessage(
-    String conversationId,
-    Map<String, dynamic> message,
-  ) {
-    return _firestore
-        .collection('conversations')
-        .doc(conversationId)
-        .collection('messages')
-        .add(message);
-  }
-
-  // Update conversation metadata
   Future<void> updateConversation(
     String conversationId,
     Map<String, dynamic> data,
   ) {
-    return _firestore
-        .collection('conversations')
-        .doc(conversationId)
-        .update(data);
+    return _db.collection('conversations').doc(conversationId).update(data);
   }
 
-  // Fetch unread messages for marking read
-  Future<List<DocumentSnapshot>> getUnreadMessages(
-    String conversationId,
-    String uid,
-  ) async {
-    final snap = await _firestore
-        .collection('conversations')
-        .doc(conversationId)
-        .collection('messages')
-        .where('unread_by', arrayContains: uid)
+  // ─────────────────────────────────────────────
+  // MESSAGES
+  // ─────────────────────────────────────────────
+
+  Future<void> addMessage(String conversationId, Map<String, dynamic> message) {
+    return _messages(conversationId).add(message);
+  }
+
+  /// Live stream (latest messages only)
+  Stream<List<Message>> streamLatestMessages(
+    String conversationId, {
+    int limit = 30,
+  }) {
+    return _messages(conversationId)
+        .orderBy('timestamp', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((s) => s.docs.map(Message.fromFirestore).toList());
+  }
+
+  /// Pagination: fetch older messages
+  Future<List<Message>> fetchOlderMessages(
+    String conversationId, {
+    required DocumentSnapshot lastDoc,
+    int limit = 30,
+  }) async {
+    final snap = await _messages(conversationId)
+        .orderBy('timestamp', descending: true)
+        .startAfterDocument(lastDoc)
+        .limit(limit)
         .get();
-    return snap.docs;
+
+    return snap.docs.map(Message.fromFirestore).toList();
   }
 
-  // Update multiple messages in batch
-  Future<void> applyBatchWrite(WriteBatch batch) => batch.commit();
+  // ─────────────────────────────────────────────
+  // TYPING
+  // ─────────────────────────────────────────────
+
+  Future<void> setTyping(String conversationId, String uid, bool isTyping) {
+    return _db.collection('conversations').doc(conversationId).update({
+      'typing.$uid': isTyping
+          ? FieldValue.serverTimestamp()
+          : FieldValue.delete(),
+    });
+  }
 }
