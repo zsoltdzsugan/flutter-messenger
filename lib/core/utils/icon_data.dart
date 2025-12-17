@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class PrefixIconData {
+class AppIconData {
   final IconData icon;
   final VoidCallback onTap;
 
-  PrefixIconData({required this.icon, required this.onTap});
+  AppIconData({required this.icon, required this.onTap});
 }
