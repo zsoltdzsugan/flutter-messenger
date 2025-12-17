@@ -19,6 +19,7 @@ class SecondaryButton extends StatelessWidget {
 
     final bgColor = context.resolveStateColor(SecondaryBtnColors.bg);
     final textColor = context.resolveStateColor(SecondaryBtnColors.text);
+    final borderColor = context.resolveStateColor(SecondaryBtnColors.border);
 
     return SizedBox(
       width: t.spacing(c.mainButtonWidth),
@@ -28,7 +29,7 @@ class SecondaryButton extends StatelessWidget {
           elevation: 5.0,
           backgroundColor: bgColor,
           foregroundColor: textColor,
-          side: BorderSide(color: textColor),
+          side: BorderSide(color: borderColor),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
