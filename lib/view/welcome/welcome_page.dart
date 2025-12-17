@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:messenger/core/constants.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/view/login/login_page.dart';
@@ -17,6 +16,8 @@ class WelcomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.adaptive;
     final c = context.components;
+    final x = context.core;
+
     final bgColor = context.resolveStateColor(MainBgColors.bg);
 
     return Scaffold(
@@ -33,7 +34,7 @@ class WelcomePage extends StatelessWidget {
             //SizedBox(height: t.spacing(c.sectionTopPadding)),
             HeroHeader(
               logoTag: "mainLogo",
-              logoPath: kLogoPath,
+              logoPath: x.logoPath,
               animatedTitle: "MESSENGER",
               logoHeight: c.mainLogoHeight,
               titleSize: c.titleLarge,

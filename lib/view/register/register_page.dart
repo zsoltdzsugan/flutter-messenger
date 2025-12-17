@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:messenger/core/constants.dart';
 import 'package:messenger/core/controller/user.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
@@ -57,7 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     final t = context.adaptive;
     final c = context.components;
-    final colors = context.core.colors;
+    final x = context.core;
 
     final bgColor = context.resolveStateColor(MainBgColors.bg);
 
@@ -70,7 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
             //SizedBox(height: t.spacing(c.sectionTopPadding)),
             HeroHeader(
               logoTag: "mainLogo",
-              logoPath: kLogoPath,
+              logoPath: x.logoPath,
               animatedTitle: "REGISZTRÁCIÓ",
               logoHeight: c.mainLogoHeight,
               titleSize: c.titleLarge,

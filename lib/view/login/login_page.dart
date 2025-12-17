@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:messenger/core/constants.dart';
 import 'package:messenger/core/controller/user.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
@@ -56,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final t = context.adaptive;
     final c = context.components;
-    final colors = context.core.colors;
+    final x = context.core;
 
     final bgColor = context.resolveStateColor(MainBgColors.bg);
 
@@ -69,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
             //SizedBox(height: t.spacing(c.sectionTopPadding)),
             HeroHeader(
               logoTag: "mainLogo",
-              logoPath: kLogoPath,
+              logoPath: x.logoPath,
               animatedTitle: "BEJELENTKEZÉS",
               logoHeight: c.mainLogoHeight,
               titleSize: c.titleLarge,

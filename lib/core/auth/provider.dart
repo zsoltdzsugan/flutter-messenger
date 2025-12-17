@@ -1,19 +1,28 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AuthProvider extends ChangeNotifier {
-  bool _loggedIn = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  bool get isLoggedIn => _loggedIn;
+  User? _user;
+  StreamSubscription<User?>? _sub;
 
-  Future<void> loadSession() async {
-    // load from SharedPrefs, secure storage, server, anything you want
-    await Future.delayed(Duration(milliseconds: 300));
-    _loggedIn = false; // change to true once real auth is in place
-    notifyListeners();
+  User? get user => _user;
+  bool get isLoggedIn => _user != null;
+
+  AuthProvider() {
+    _user = _auth.currentUser;
+    _sub = _auth.authStateChanges().listen((user) {
+      _user = user;
+      notifyListeners();
+    });
   }
 
-  void setLoggedIn(bool value) {
-    _loggedIn = value;
-    notifyListeners();
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
   }
 }
