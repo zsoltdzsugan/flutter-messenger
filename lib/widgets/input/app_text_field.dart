@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:messenger/core/enums/icon_state.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
+import 'package:messenger/core/utils/icon_data.dart';
 
 class AppTextField extends StatefulWidget {
   final TextEditingController controller;
@@ -9,7 +10,10 @@ class AppTextField extends StatefulWidget {
   final String hint;
   final String focusColor;
   final Function()? onPressed;
+  final ValueChanged<String>? onChanged;
   final IconState state;
+  final IconData? idleIcon;
+  final List<AppIconData>? prefixIcons;
 
   const AppTextField({
     super.key,
@@ -19,6 +23,9 @@ class AppTextField extends StatefulWidget {
     required this.state,
     this.focusColor = "primary",
     this.onPressed,
+    this.onChanged,
+    this.idleIcon = Icons.save,
+    this.prefixIcons,
   });
 
   @override
@@ -44,6 +51,43 @@ class _AppTextFieldState extends State<AppTextField> {
     super.dispose();
   }
 
+  Widget _buildPrefixIcon() {
+    final icons = widget.prefixIcons;
+
+    if (icons == null || icons.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final dividerColor = context.resolveStateColor(InputDividerColors.bg);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ...widget.prefixIcons!.map((data) {
+          return IconButton(onPressed: data.onTap, icon: Icon(data.icon));
+        }),
+        VerticalDivider(indent: 8, endIndent: 8, color: dividerColor),
+      ],
+    );
+  }
+
+  Widget _buildSuffixIcon(IconState state) {
+    switch (state) {
+      case IconState.saving:
+        return const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        );
+      case IconState.success:
+        return const Icon(Icons.check, color: Colors.green);
+      case IconState.error:
+        return const Icon(Icons.close, color: Colors.red);
+      default:
+        return Icon(widget.idleIcon);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.adaptive;
@@ -57,11 +101,21 @@ class _AppTextFieldState extends State<AppTextField> {
       isSelected: isFocused,
     );
     final textColor = context.resolveStateColor(
-      AuthInputColors.text,
+      widget.focusColor == "primary"
+          ? AuthInputColors.textPrimary
+          : AuthInputColors.textSecondary,
       isSelected: isFocused,
     );
     final hintColor = context.resolveStateColor(
-      AuthInputColors.hint,
+      widget.focusColor == "primary"
+          ? AuthInputColors.hintPrimary
+          : AuthInputColors.hintSecondary,
+      isSelected: isFocused,
+    );
+    final borderColor = context.resolveStateColor(
+      widget.focusColor == "primary"
+          ? AuthInputColors.borderPrimary
+          : AuthInputColors.borderSecondary,
       isSelected: isFocused,
     );
 
@@ -72,6 +126,7 @@ class _AppTextFieldState extends State<AppTextField> {
         controller: widget.controller,
         focusNode: _focusNode,
         keyboardType: widget.keyboardType,
+        onChanged: widget.onChanged,
         cursorColor: textColor,
         cursorHeight: t.font(16),
         textAlignVertical: TextAlignVertical(y: 0.75),
@@ -83,6 +138,15 @@ class _AppTextFieldState extends State<AppTextField> {
         decoration: InputDecoration(
           filled: true,
           fillColor: bgColor,
+          prefixIconColor: textColor,
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 6.0),
+            child: _buildPrefixIcon(),
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 0,
+            minHeight: 0,
+          ),
           suffixIconColor: textColor,
           suffixIcon: Padding(
             padding: const EdgeInsets.only(right: 6.0),
@@ -102,39 +166,22 @@ class _AppTextFieldState extends State<AppTextField> {
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
             ),
-            borderSide: BorderSide(color: textColor),
+            borderSide: BorderSide(color: borderColor),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
             ),
-            borderSide: BorderSide(color: textColor),
+            borderSide: BorderSide(color: borderColor),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
             ),
-            borderSide: BorderSide(color: textColor),
+            borderSide: BorderSide(color: borderColor),
           ),
         ),
       ),
     );
-  }
-}
-
-Widget _buildSuffixIcon(IconState state) {
-  switch (state) {
-    case IconState.saving:
-      return const SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
-    case IconState.success:
-      return const Icon(Icons.check, color: Colors.green);
-    case IconState.error:
-      return const Icon(Icons.close, color: Colors.red);
-    default:
-      return const Icon(Icons.save);
   }
 }

@@ -56,11 +56,21 @@ class _AuthTextFieldState extends State<AuthTextField> {
       isSelected: isFocused,
     );
     final textColor = context.resolveStateColor(
-      AuthInputColors.text,
+      widget.focusColor == "primary"
+          ? AuthInputColors.textPrimary
+          : AuthInputColors.textSecondary,
       isSelected: isFocused,
     );
     final hintColor = context.resolveStateColor(
-      AuthInputColors.hint,
+      widget.focusColor == "primary"
+          ? AuthInputColors.hintPrimary
+          : AuthInputColors.hintSecondary,
+      isSelected: isFocused,
+    );
+    final borderColor = context.resolveStateColor(
+      widget.focusColor == "primary"
+          ? AuthInputColors.borderPrimary
+          : AuthInputColors.borderSecondary,
       isSelected: isFocused,
     );
 
@@ -86,7 +96,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
           suffixIconColor: textColor,
           suffixIcon: widget.obscure
               ? Padding(
-                  padding: const EdgeInsets.only(top: 2, right: 6),
+                  padding: const EdgeInsets.only(right: 6),
                   child: IconButton(
                     onPressed: () {
                       setState(() {
@@ -110,19 +120,19 @@ class _AuthTextFieldState extends State<AuthTextField> {
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
             ),
-            borderSide: BorderSide(color: textColor),
+            borderSide: BorderSide(color: borderColor),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
             ),
-            borderSide: BorderSide(color: textColor),
+            borderSide: BorderSide(color: borderColor),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(
               context.core.baseRadius * t.radiusScale,
             ),
-            borderSide: BorderSide(color: textColor),
+            borderSide: BorderSide(color: borderColor),
           ),
         ),
       ),
