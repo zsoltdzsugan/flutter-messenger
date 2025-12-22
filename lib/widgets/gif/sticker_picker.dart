@@ -65,7 +65,10 @@ class _StickerPickerState extends State<StickerPicker> {
                   itemBuilder: (_, i) {
                     final s = _stickers[i];
                     return GestureDetector(
-                      onTap: () => widget.onSelect(s),
+                      onTap: () {
+                        widget.onSelect(s);
+                        Navigator.pop(context);
+                      },
                       child: Image.network(
                         s.previewUrl.isNotEmpty ? s.previewUrl : s.url,
                         fit: BoxFit.contain,
