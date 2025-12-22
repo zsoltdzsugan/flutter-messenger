@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:messenger/core/enums/gif_provider.dart';
 import 'package:messenger/core/enums/message_type.dart';
 import 'package:messenger/core/models/message_image.dart';
 
 class Message {
   final String id;
+  final String conversationId;
   final String sender;
   final MessageType type;
   final String text;
@@ -17,14 +19,18 @@ class Message {
   final DateTime timestamp;
   final List<String> readBy;
 
-  final DocumentSnapshot firestoreDoc;
+  //final DocumentSnapshot firestoreDoc;
+  final bool deleted;
 
   final bool isLocal;
   final double uploadProgress;
   final String? localPath;
 
+  final GifProvider? provider;
+
   Message({
     required this.id,
+    required this.conversationId,
     required this.sender,
     required this.type,
     required this.text,
@@ -35,11 +41,12 @@ class Message {
     required this.height,
     required this.timestamp,
     required this.readBy,
-    required this.firestoreDoc,
-
+    //required this.firestoreDoc,
+    required this.deleted,
     this.isLocal = false,
     this.uploadProgress = 1.0,
     this.localPath,
+    this.provider,
   });
 
   factory Message.fromFirestore(DocumentSnapshot doc) {
@@ -55,8 +62,18 @@ class Message {
             .toList() ??
         const [];
 
+    GifProvider? provider;
+    final providerString = media['provider'];
+    if (providerString is String) {
+      provider = GifProvider.values.firstWhere(
+        (p) => p.name == providerString,
+        orElse: () => GifProvider.tenor,
+      );
+    }
+
     return Message(
       id: doc.id,
+      conversationId: doc.reference.parent.parent!.id,
       sender: data['sender'],
       type: MessageType.values.firstWhere((t) => t.name == data['type']),
       text: data['text'] ?? '',
@@ -67,21 +84,22 @@ class Message {
       height: (media['height'] as num?)?.toDouble(),
       timestamp: time,
       readBy: List<String>.from(data['read_by'] ?? const []),
-      firestoreDoc: doc,
-
-      isLocal: false,
-      uploadProgress: 1.0,
-      localPath: null,
+      deleted: data['deleted'] ?? false,
+      provider: provider,
     );
   }
 
   factory Message.localImage({
     required String id,
+    required String conversationId,
     required String sender,
     required String localPath,
+    bool deleted = false,
+    GifProvider? provider,
   }) {
     return Message(
       id: id,
+      conversationId: conversationId,
       sender: sender,
       type: MessageType.image,
       text: '',
@@ -92,11 +110,13 @@ class Message {
       height: null,
       timestamp: DateTime.now(),
       readBy: const [],
-      firestoreDoc: _FakeDocumentSnapshot(),
 
+      //firestoreDoc: _FakeDocumentSnapshot(),
+      deleted: deleted,
       isLocal: true,
       uploadProgress: 0.0,
       localPath: localPath,
+      provider: provider,
     );
   }
 }

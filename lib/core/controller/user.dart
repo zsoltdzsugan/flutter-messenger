@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -128,5 +130,13 @@ class UserController {
     return _user
         .getUsersByName(name)
         .map((list) => list.where((doc) => doc.id != uid).toList());
+  }
+
+  Future<void> updateProfilePicture(File file) async {
+    final uid = currentUser?.uid;
+    if (uid == null) return;
+
+    await _user.updateProfilePicture(uid, file);
+    await getCurrentUserData();
   }
 }

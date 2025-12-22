@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:messenger/view/home/chat/hover_context_menu.dart';
 
 class ChatActionOverlayController {
+  static bool isOpen = false;
   static OverlayEntry? _entry;
 
   static void showFor({
@@ -11,7 +12,9 @@ class ChatActionOverlayController {
     VoidCallback? onDelete,
     VoidCallback? onSave,
     VoidCallback? onForward,
+    VoidCallback? onCopy,
   }) {
+    isOpen = true;
     hide();
 
     _entry = OverlayEntry(
@@ -29,7 +32,7 @@ class ChatActionOverlayController {
                   ? Alignment.centerRight
                   : Alignment.centerLeft,
 
-              offset: const Offset(-12, 0),
+              offset: isMe ? const Offset(-12, 2) : const Offset(12, 2),
 
               child: Material(
                 color: Colors.transparent,
@@ -52,6 +55,12 @@ class ChatActionOverlayController {
                           hide();
                           onForward();
                         },
+                  onCopy: onCopy == null
+                      ? null
+                      : () {
+                          hide();
+                          onCopy();
+                        },
                 ),
               ),
             ),
@@ -64,6 +73,7 @@ class ChatActionOverlayController {
   }
 
   static void hide() {
+    isOpen = false;
     _entry?.remove();
     _entry = null;
   }

@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:messenger/core/services/storage.dart';
 
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -14,7 +17,7 @@ class UserService {
       'email': email,
       'name': name ?? '',
       'name_lowercase': name?.toLowerCase() ?? '',
-      'photoUrl': '',
+      'photo_url': '',
       'is_online': true,
       'last_seen': FieldValue.serverTimestamp(),
       'created_at': FieldValue.serverTimestamp(),
@@ -43,7 +46,7 @@ class UserService {
   // USER SEARCH / USER LIST
   // -----------------------------
   Stream<QuerySnapshot> getAllUsers() {
-    return _firestore.collection('users').snapshots();
+    return _firestore.collection('users').orderBy('name_lowercase').snapshots();
   }
 
   Stream<QuerySnapshot> getOnlineUsers() {
@@ -70,21 +73,16 @@ class UserService {
         .map((snapshot) => snapshot.docs);
   }
 
-  /*
-  Stream<List<DocumentSnapshot>> getUsersByName(String name) {
-    if (name.isEmpty) return Stream.value([]);
+  Future<void> updateProfilePicture(String uid, File file) async {
+    if (uid == null) return;
 
-    final query = name.toLowerCase();
-    return _firestore
-        .collection('users')
-        .orderBy('name_lowercase')
-        .startAt([query])
-        .endAt(['$query\uf8ff'])
-        .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs.where((doc) => doc.id != currentUser?.uid).toList(),
-        );
+    final photoUrl = await StorageService.instance.uploadProfilePicture(
+      uid,
+      file,
+    );
+    await _firestore.collection('users').doc(uid).update({
+      'photo_url': photoUrl,
+      'updated_at': FieldValue.serverTimestamp(),
+    });
   }
-  */
 }
