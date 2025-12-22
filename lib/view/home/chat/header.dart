@@ -8,11 +8,15 @@ import 'package:messenger/widgets/chat/avatar.dart';
 class ChatHeader extends StatelessWidget {
   final String conversationId;
   final String otherUserId;
+  final bool showImages;
+  final VoidCallback onImagesToggle;
 
   const ChatHeader({
     super.key,
     required this.conversationId,
     required this.otherUserId,
+    required this.showImages,
+    required this.onImagesToggle,
   });
 
   @override
@@ -20,8 +24,6 @@ class ChatHeader extends StatelessWidget {
     final t = context.adaptive;
     final c = context.components;
 
-    final avatarBgColor = context.resolveStateColor(AvatarColors.bg);
-    final avatarTextColor = context.resolveStateColor(AvatarColors.text);
     final nameTextColor = context.resolveStateColor(NameColors.text);
 
     return StreamBuilder<DocumentSnapshot>(
@@ -46,6 +48,10 @@ class ChatHeader extends StatelessWidget {
             ? PresenceState.away
             : PresenceState.offline;
 
+        final iconColor = context.resolveStateColor(
+          AuthInputColors.textPrimary,
+        );
+
         return Padding(
           padding: EdgeInsets.symmetric(
             vertical: t.spacing(c.spaceSmall),
@@ -56,15 +62,12 @@ class ChatHeader extends StatelessWidget {
             children: [
               // ───── User block ─────
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Avatar(
-                    photoUrl: photoUrl,
-                    name: name,
-                    presence: presence,
-                    backgroundColor: avatarBgColor,
-                    textColor: avatarTextColor,
-                  ),
+                  Avatar(photoUrl: photoUrl, name: name, presence: presence),
+
                   SizedBox(width: t.spacing(c.spaceSmall)),
+
                   Text(
                     name,
                     style: TextStyle(
@@ -73,6 +76,8 @@ class ChatHeader extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
+                  SizedBox(width: t.spacing(c.spaceSmall)),
                 ],
               ),
 
@@ -80,12 +85,19 @@ class ChatHeader extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.image),
-                    onPressed: () {
-                      // keep existing behavior
-                    },
+                    icon: Icon(showImages ? Icons.close : Icons.collections),
+                    iconSize: 28,
+                    color: iconColor,
+                    onPressed: onImagesToggle,
                   ),
                   SizedBox(width: t.spacing(c.spaceSmall)),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.more_vert),
+                    color: iconColor,
+                    iconSize: 28,
+                  ),
+                  /*
                   PopupMenuButton<String>(
                     tooltip: '',
                     icon: const Icon(Icons.more_vert),
@@ -120,6 +132,7 @@ class ChatHeader extends StatelessWidget {
                       ),
                     ],
                   ),
+                   */
                 ],
               ),
             ],

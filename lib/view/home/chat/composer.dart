@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:messenger/core/controller/conversation.dart';
 import 'package:messenger/core/enums/icon_state.dart';
 import 'package:messenger/core/enums/message_type.dart';
+import 'package:messenger/core/enums/picker_mode.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/models/gif.dart';
 import 'package:messenger/core/services/image_picker.dart';
 import 'package:messenger/core/utils/icon_data.dart';
-import 'package:messenger/widgets/gif/gif_picker.dart';
-import 'package:messenger/widgets/gif/sticker_picker.dart';
 import 'package:messenger/widgets/input/app_text_field.dart';
+import 'package:messenger/widgets/picker/picker.dart';
 
 class ChatComposer extends StatefulWidget {
   final String conversationId;
@@ -23,6 +23,7 @@ class ChatComposer extends StatefulWidget {
 
 class _ChatComposerState extends State<ChatComposer> {
   final _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   Timer? _typingDebounce;
   bool _isTyping = false;
 
@@ -54,6 +55,10 @@ class _ChatComposerState extends State<ChatComposer> {
     );
 
     ConversationController.instance.setTyping(widget.conversationId, false);
+
+    if (mounted) {
+      _focusNode.requestFocus();
+    }
   }
 
   Future<void> _sendGif(Gif gif) async {
@@ -99,6 +104,7 @@ class _ChatComposerState extends State<ChatComposer> {
   void dispose() {
     _typingDebounce?.cancel();
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -120,37 +126,51 @@ class _ChatComposerState extends State<ChatComposer> {
           Expanded(
             child: AppTextField(
               controller: _controller,
+              focusNode: _focusNode,
               keyboardType: TextInputType.text,
               hint: 'Üzenet küldése...',
               idleIcon: Icons.send,
               onChanged: _onChanged,
               onPressed: _sendText,
+              onSubmitted: (_) => _sendText(),
               state: iconState,
               prefixIcons: [
                 AppIconData(
                   icon: Icons.add_box_outlined,
+                  iconSize: 28,
                   onTap: () => _sendImages(),
                 ),
                 AppIconData(
                   icon: Icons.gif_box_rounded,
+                  iconSize: 28,
                   onTap: () {
-                    showModalBottomSheet(
+                    showPicker(
                       context: context,
-                      isScrollControlled: true,
-                      builder: (_) =>
-                          GifPicker(onSelected: (gif) => _sendGif(gif)),
+                      mode: PickerMode.gif,
+                      onSelected: (gif) {
+                        ConversationController.instance.send(
+                          widget.conversationId,
+                          type: MessageType.gif,
+                          gif: gif,
+                        );
+                      },
                     );
                   },
                 ),
                 AppIconData(
                   icon: Icons.emoji_emotions_rounded,
+                  iconSize: 28,
                   onTap: () {
-                    showModalBottomSheet(
+                    showPicker(
                       context: context,
-                      isScrollControlled: true,
-                      builder: (_) => StickerPicker(
-                        onSelect: (sticker) => _sendEmoji(sticker),
-                      ),
+                      mode: PickerMode.sticker,
+                      onSelected: (sticker) {
+                        ConversationController.instance.send(
+                          widget.conversationId,
+                          type: MessageType.sticker,
+                          gif: sticker,
+                        );
+                      },
                     );
                   },
                 ),

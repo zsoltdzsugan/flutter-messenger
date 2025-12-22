@@ -5,6 +5,7 @@ import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/core/utils/chat_image.dart';
 import 'package:messenger/view/home/chat/composer.dart';
 import 'package:messenger/view/home/chat/header.dart';
+import 'package:messenger/view/home/image/container.dart';
 import 'package:messenger/widgets/chat/message_list.dart';
 import 'package:messenger/widgets/chat/typing_indicator.dart';
 
@@ -32,8 +33,14 @@ class _ChatContainerState extends State<ChatContainer> {
     _markConversationRead();
   }
 
+  void _toggleImages() {
+    setState(() {
+      showImages = !showImages;
+    });
+  }
+
   Future<void> _markConversationRead() {
-    return ConversationController.instance.markConversationRead(
+    return ConversationController.instance.markConversationAsRead(
       widget.conversationId,
     );
   }
@@ -51,6 +58,8 @@ class _ChatContainerState extends State<ChatContainer> {
         ChatHeader(
           conversationId: widget.conversationId,
           otherUserId: widget.otherUserId,
+          showImages: showImages,
+          onImagesToggle: _toggleImages,
         ),
 
         Expanded(
@@ -69,15 +78,32 @@ class _ChatContainerState extends State<ChatContainer> {
               child: Column(
                 children: [
                   Expanded(
-                    child: MessageList(
-                      stream: ConversationController.instance.streamMessages(
-                        widget.conversationId,
-                      ),
-                      conversationId: widget.conversationId,
-                      otherUserId: widget.otherUserId,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      switchInCurve: Curves.easeOut,
+                      switchOutCurve: Curves.easeIn,
+                      child: showImages
+                          ? ImageContainer(
+                              key: const ValueKey('images'),
+                              conversationId: widget.conversationId,
+                            )
+                          : Column(
+                              key: const ValueKey('messages'),
+                              children: [
+                                Expanded(
+                                  child: MessageList(
+                                    key: ValueKey(widget.conversationId),
+                                    conversationId: widget.conversationId,
+                                    otherUserId: widget.otherUserId,
+                                  ),
+                                ),
+                                TypingIndicator(
+                                  conversationId: widget.conversationId,
+                                ),
+                              ],
+                            ),
                     ),
                   ),
-                  TypingIndicator(conversationId: widget.conversationId),
                 ],
               ),
             ),
