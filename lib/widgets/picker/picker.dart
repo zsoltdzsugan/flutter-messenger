@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:messenger/core/controller/gif.dart';
+import 'package:messenger/core/controller/session.dart';
 import 'package:messenger/core/controller/user.dart';
 import 'package:messenger/core/enums/devices.dart';
 import 'package:messenger/core/enums/gif_provider.dart';
@@ -109,6 +110,7 @@ class _PickerState extends State<Picker> {
         _loading = false;
       });
     });
+    SessionController.instance.register(_userSub!);
   }
 
   // ─────────────────────────────────────────────
