@@ -3,11 +3,18 @@ import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
 
 class HoverActions extends StatelessWidget {
+  final VoidCallback? onCopy;
   final VoidCallback? onDelete;
   final VoidCallback? onSave;
   final VoidCallback? onForward;
 
-  const HoverActions({super.key, this.onDelete, this.onSave, this.onForward});
+  const HoverActions({
+    super.key,
+    this.onCopy,
+    this.onDelete,
+    this.onSave,
+    this.onForward,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +26,14 @@ class HoverActions extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (onCopy != null)
+            IconButton(
+              icon: Icon(Icons.copy, size: 18, color: iconColors),
+              onPressed: onCopy,
+            ),
           if (onForward != null)
             IconButton(
-              icon: Icon(Icons.reply, size: 18, color: iconColors),
+              icon: Icon(Icons.share, size: 18, color: iconColors),
               onPressed: onForward,
             ),
           if (onSave != null)

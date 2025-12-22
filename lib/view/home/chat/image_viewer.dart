@@ -95,7 +95,7 @@ class _ImageCarouselViewerState extends State<ImageCarouselViewer> {
                 padding: EdgeInsets.all(t.spacing(c.spaceXSmall)),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.red,
+                    color: Colors.black45,
                     borderRadius: BorderRadius.circular(
                       t.spacing(c.spaceSmall),
                     ),
@@ -122,7 +122,7 @@ class _ImageCarouselViewerState extends State<ImageCarouselViewer> {
                 padding: EdgeInsets.all(t.spacing(c.spaceXSmall)),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.red,
+                    color: Colors.black45,
                     borderRadius: BorderRadius.circular(
                       t.spacing(c.spaceSmall),
                     ),
@@ -157,7 +157,7 @@ class _ImageCarouselViewerState extends State<ImageCarouselViewer> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: Colors.black45,
                         borderRadius: BorderRadius.circular(
                           context.core.baseRadius * t.radiusScale,
                         ),
@@ -191,7 +191,7 @@ class _ImageCarouselViewerState extends State<ImageCarouselViewer> {
                     SizedBox(width: t.spacing(c.spaceLarge)),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: Colors.black45,
                         borderRadius: BorderRadius.circular(
                           context.core.baseRadius * t.radiusScale,
                         ),

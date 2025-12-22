@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:messenger/core/enums/sidebar_filter.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
-import 'package:messenger/view/home/sidebar/filter.dart';
 import 'package:messenger/widgets/buttons/animated_filter_button.dart';
 
 class SidebarFilterBar extends StatelessWidget {
@@ -27,7 +27,7 @@ class SidebarFilterBar extends StatelessWidget {
         children: [
           Expanded(
             child: AnimatedFilterButton(
-              label: "Users",
+              label: "Ismerősök",
               isSelected: filter == SidebarFilter.users,
               onTap: () => onChanged(SidebarFilter.users),
               icon: Icons.group,
@@ -36,7 +36,7 @@ class SidebarFilterBar extends StatelessWidget {
           SizedBox(width: t.spacing(c.spaceXSmall)),
           Expanded(
             child: AnimatedFilterButton(
-              label: "Messages",
+              label: "Üzenetek",
               isSelected: filter == SidebarFilter.messages,
               onTap: () => onChanged(SidebarFilter.messages),
               icon: Icons.inbox,

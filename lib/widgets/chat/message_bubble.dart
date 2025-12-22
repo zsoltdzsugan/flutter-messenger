@@ -22,18 +22,14 @@ class MessageBubble extends StatefulWidget {
   final Message message;
   final bool isMe;
   final String otherUserId;
-  final bool showAvatar;
   final Future<void> Function()? onOpenMenu;
-  final Function() scrollToBottom;
 
   const MessageBubble({
     super.key,
     required this.message,
     required this.isMe,
     required this.otherUserId,
-    required this.showAvatar,
     required this.onOpenMenu,
-    required this.scrollToBottom,
   });
 
   @override
@@ -110,16 +106,16 @@ class _MessageBubbleState extends State<MessageBubble> {
         : incomingBubbleTextColor;
 
     return Padding(
-      padding: EdgeInsets.only(top: widget.showAvatar ? 12 : 2, bottom: 2),
+      padding: EdgeInsets.only(top: 2, bottom: 2),
       child: Row(
         mainAxisAlignment: widget.isMe
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!widget.isMe && widget.showAvatar) const CircleAvatar(radius: 14),
+          if (!widget.isMe) const CircleAvatar(radius: 14),
 
-          if (!widget.isMe && widget.showAvatar) const SizedBox(width: 6),
+          if (!widget.isMe) const SizedBox(width: 6),
 
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
@@ -337,11 +333,8 @@ class _MessageBubbleState extends State<MessageBubble> {
             borderRadius: BorderRadius.circular(12),
             child: CachedNetworkImage(
               imageUrl: img.url,
-              imageBuilder: (_, imgProvider) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  widget.scrollToBottom;
-                });
-                return Image(image: imgProvider, fit: BoxFit.contain);
+              imageBuilder: (_, provider) {
+                return Image(image: provider, fit: BoxFit.contain);
               },
             ),
           ),

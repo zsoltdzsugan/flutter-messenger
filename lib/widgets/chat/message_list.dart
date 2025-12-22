@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:messenger/core/controller/conversation.dart';
+import 'package:messenger/core/controller/session.dart';
 import 'package:messenger/core/models/message.dart';
 import 'package:messenger/widgets/chat/message_bubble.dart';
 
@@ -78,6 +79,7 @@ class _MessageListState extends State<MessageList> {
     _sub = ConversationController.instance
         .streamMessageSnapshots(widget.conversationId, limit: _pageSize)
         .listen(_onLiveSnapshot);
+    SessionController.instance.register(_sub!);
   }
 
   void _onLiveSnapshot(QuerySnapshot<Map<String, dynamic>> snap) {
@@ -240,10 +242,8 @@ class _MessageListState extends State<MessageList> {
       itemCount: _ordered.length,
       itemBuilder: (context, index) {
         final msg = _ordered[index];
-        final prev = index > 0 ? _ordered[index - 1] : null;
 
         final isMe = msg.sender != widget.otherUserId;
-        final grouped = prev != null && prev.sender == msg.sender;
         final key = _keys.putIfAbsent(msg.id, () => GlobalKey());
 
         return Container(
@@ -252,9 +252,7 @@ class _MessageListState extends State<MessageList> {
             message: msg,
             isMe: isMe,
             otherUserId: widget.otherUserId,
-            showAvatar: !grouped,
             onOpenMenu: () => _ensureVisible(msg.id),
-            scrollToBottom: scrollToBottom,
           ),
         );
       },
