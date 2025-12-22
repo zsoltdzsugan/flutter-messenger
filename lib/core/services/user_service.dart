@@ -19,6 +19,7 @@ class UserService {
       'name_lowercase': name?.toLowerCase() ?? '',
       'photo_url': '',
       'is_online': true,
+      'deleted': false,
       'last_seen': FieldValue.serverTimestamp(),
       'created_at': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),

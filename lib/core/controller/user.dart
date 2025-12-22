@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:messenger/core/controller/session.dart';
 import 'package:messenger/core/services/auth_service.dart';
 import 'package:messenger/core/services/presence_service.dart';
 import 'package:messenger/core/services/user_service.dart';
@@ -83,6 +84,7 @@ class UserController {
   }
 
   Future<void> logout() async {
+    await SessionController.instance.clear();
     _presence.stop();
     userData.value = null;
     await _auth.logout();
@@ -96,15 +98,54 @@ class UserController {
     await getCurrentUserData();
   }
 
-  Future<void> delete() async {
-    final user = currentUser;
-    if (user == null) return;
+  Future<void> deleteAccount({required String password}) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final auth = FirebaseAuth.instance;
 
+    final current = auth.currentUser;
+    if (current == null || current.email == null) {
+      throw FirebaseAuthException(
+        code: 'no-user',
+        message: 'Nincs bejelentkezett felhasználó',
+      );
+    }
+
+    final email = current.email!;
+    final uid = current.uid;
+
+    // 1️⃣ Explicit re-login (fresh auth session)
+    final cred = await auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    final user = cred.user;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'login-failed',
+        message: 'Nem sikerült újrabejelentkezni',
+      );
+    }
+
+    // 2️⃣ Update Firestore while auth is valid
+    await _user.update(uid, {
+      'name': 'Törölt felhasználó',
+      'name_lowercase': 'törölt felhasznalo',
+      'email': '',
+      'photo_url': '',
+      'is_online': false,
+      'deleted': true,
+      'updated_at': FieldValue.serverTimestamp(),
+      'last_seen': FieldValue.serverTimestamp(),
+    });
+
+    // 3️⃣ Delete Firebase Auth user
+    await user.delete();
+
+    // 4️⃣ Local cleanup
+    await auth.signOut();
+    await SessionController.instance.clear();
     _presence.stop();
-    await _user.delete(user.uid);
-    await _auth.delete(user);
-    await _auth.logout();
-
     userData.value = null;
   }
 

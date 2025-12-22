@@ -179,18 +179,6 @@ class ConversationController {
     return _conv.streamLatestMessages(conversationId);
   }
 
-  Future<List<Message>> loadMore(
-    String conversationId, {
-    required DocumentSnapshot lastDoc,
-    int limit = 30,
-  }) {
-    return _conv.fetchOlderMessages(
-      conversationId,
-      limit: limit,
-      lastDoc: lastDoc,
-    );
-  }
-
   Stream<QuerySnapshot<Map<String, dynamic>>> streamMessageSnapshots(
     String conversationId, {
     int limit = 30,

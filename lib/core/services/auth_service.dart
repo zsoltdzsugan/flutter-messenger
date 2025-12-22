@@ -23,5 +23,15 @@ class AuthService {
 
   Future<void> logout() => _auth.signOut();
 
-  Future<void> delete(User user) => user.delete();
+  Future<void> reauthenticate({required AuthCredential credential}) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'no-current-user',
+        message: 'No authenticated user',
+      );
+    }
+
+    await user.reauthenticateWithCredential(credential);
+  }
 }
