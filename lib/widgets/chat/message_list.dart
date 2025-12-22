@@ -2,19 +2,16 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:messenger/core/controller/chat_action_overlay_controller.dart';
 import 'package:messenger/core/controller/conversation.dart';
 import 'package:messenger/core/models/message.dart';
 import 'package:messenger/widgets/chat/message_bubble.dart';
 
 class MessageList extends StatefulWidget {
-  final Stream<List<Message>> stream;
   final String conversationId;
   final String otherUserId;
 
   const MessageList({
     super.key,
-    required this.stream,
     required this.conversationId,
     required this.otherUserId,
   });
@@ -26,120 +23,239 @@ class MessageList extends StatefulWidget {
 class _MessageListState extends State<MessageList> {
   final ScrollController _scrollController = ScrollController();
 
-  final List<Message> _messages = [];
-  final Set<String> _messageIds = {}; // ← HARD dedupe
+  final Map<String, Message> _byId = {};
+  final Map<String, GlobalKey> _keys = {};
 
-  late final StreamSubscription<List<Message>> _sub;
+  List<Message> _ordered = [];
 
-  DocumentSnapshot? _oldestDoc;
-  bool _loadingMore = false;
-  bool _initialJumpDone = false;
-  bool _isAtBottom = true;
+  QueryDocumentSnapshot<Map<String, dynamic>>? _cursor;
+  bool _fetchingOlder = false;
+  bool _hasMore = true;
+  bool _didInitialScroll = false;
+  bool _didFinalMediaScroll = false;
+
+  StreamSubscription? _sub;
+
+  static const int _pageSize = 30;
+
+  bool get isNearBottom {
+    if (!_scrollController.hasClients) return false;
+    final position = _scrollController.position;
+    return position.maxScrollExtent - position.pixels < 20;
+  }
 
   @override
   void initState() {
     super.initState();
-
-    _sub = widget.stream.listen(_onLatestMessages);
-    _scrollController.addListener(() {
-      ChatActionOverlayController.hide();
-      _onScroll();
-    });
-  }
-
-  void _onLatestMessages(List<Message> latest) {
-    if (latest.isEmpty) return;
-
-    bool added = false;
-
-    for (final m in latest) {
-      if (_messageIds.add(m.id)) {
-        _messages.add(m);
-        added = true;
-      }
-    }
-
-    if (!added) return;
-
-    _messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    _oldestDoc ??= _messages.first.firestoreDoc;
-
-    setState(() {});
-
-    if (!_initialJumpDone) {
-      _initialJumpDone = true;
-      _jumpToBottom();
-    } else if (_isAtBottom) {
-      _jumpToBottom();
-    }
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-
-    final pos = _scrollController.position;
-    _isAtBottom = (pos.maxScrollExtent - pos.pixels) < 40;
-
-    if (pos.pixels <= 80 && !_loadingMore && _oldestDoc != null) {
-      _loadMore();
-    }
-  }
-
-  Future<void> _loadMore() async {
-    _loadingMore = true;
-
-    final older = await ConversationController.instance.loadMore(
-      widget.conversationId,
-      lastDoc: _oldestDoc!,
-    );
-
-    if (older.isNotEmpty) {
-      for (final m in older) {
-        if (_messageIds.add(m.id)) {
-          _messages.insert(0, m);
-        }
-      }
-
-      _oldestDoc = _messages.first.firestoreDoc;
-      setState(() {});
-    }
-
-    _loadingMore = false;
-  }
-
-  void _jumpToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      }
-    });
+    _listenLive();
+    _scrollController.addListener(_onScroll);
   }
 
   @override
+  void didUpdateWidget(covariant MessageList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.conversationId != widget.conversationId) {
+      _sub?.cancel();
+      _byId.clear();
+      _keys.clear();
+      _ordered = [];
+      _cursor = null;
+      _hasMore = true;
+      _fetchingOlder = false;
+
+      _didInitialScroll = false;
+      _didFinalMediaScroll = false;
+
+      _listenLive();
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // LIVE STREAM (LATEST MESSAGES ONLY)
+  // ─────────────────────────────────────────────
+  void _listenLive() {
+    _sub = ConversationController.instance
+        .streamMessageSnapshots(widget.conversationId, limit: _pageSize)
+        .listen(_onLiveSnapshot);
+  }
+
+  void _onLiveSnapshot(QuerySnapshot<Map<String, dynamic>> snap) {
+    bool addedNew = false;
+
+    for (final change in snap.docChanges) {
+      final doc = change.doc;
+      final msg = Message.fromFirestore(doc);
+
+      if (change.type == DocumentChangeType.added ||
+          change.type == DocumentChangeType.modified) {
+        final isNew = !_byId.containsKey(msg.id);
+        _byId[msg.id] = msg;
+        if (isNew) addedNew = true;
+      }
+    }
+
+    // initialize cursor ONCE
+    _cursor ??= snap.docs.isNotEmpty ? snap.docs.last : null;
+
+    _rebuild();
+
+    if (!mounted) return;
+    setState(() {});
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!_scrollController.hasClients) return;
+
+      // First layout pass
+      if (!_didInitialScroll) {
+        scrollToBottom();
+        _didInitialScroll = true;
+
+        // wait for next frame (images start resolving sizes)
+        await WidgetsBinding.instance.endOfFrame;
+      }
+
+      // Second pass — after images/gifs expand
+      if (!_didFinalMediaScroll) {
+        _didFinalMediaScroll = true;
+        scrollToBottom();
+        return;
+      }
+
+      // Normal behavior for new messages
+      if (addedNew && _isNearBottom()) {
+        scrollToBottom();
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // PAGINATION (OLDER MESSAGES)
+  // ─────────────────────────────────────────────
+  void _onScroll() {
+    if (!_hasMore || _fetchingOlder) return;
+    if (_scrollController.position.pixels > 80) return;
+
+    _fetchOlder();
+  }
+
+  Future<void> _fetchOlder() async {
+    if (_cursor == null) return;
+
+    _fetchingOlder = true;
+
+    final beforeOffset = _scrollController.position.pixels;
+    final beforeMax = _scrollController.position.maxScrollExtent;
+
+    final snap = await ConversationController.instance.loadMoreSnapshots(
+      widget.conversationId,
+      lastDoc: _cursor!,
+      limit: _pageSize,
+    );
+
+    if (snap.docs.isEmpty) {
+      _hasMore = false;
+      _fetchingOlder = false;
+      return;
+    }
+
+    for (final doc in snap.docs) {
+      final msg = Message.fromFirestore(doc);
+      _byId[msg.id] = msg;
+    }
+
+    _cursor = snap.docs.last;
+    _rebuild();
+
+    if (!mounted) return;
+    setState(() {});
+
+    // preserve scroll position
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final afterMax = _scrollController.position.maxScrollExtent;
+      final delta = afterMax - beforeMax;
+      _scrollController.jumpTo(beforeOffset + delta);
+    });
+
+    _fetchingOlder = false;
+  }
+
+  // ─────────────────────────────────────────────
+  // HELPERS
+  // ─────────────────────────────────────────────
+  void _rebuild() {
+    _ordered = _byId.values.toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+  }
+
+  bool _isNearBottom() {
+    if (!_scrollController.hasClients) return false;
+    final pos = _scrollController.position;
+    return (pos.maxScrollExtent - pos.pixels) < 60;
+  }
+
+  void scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  Future<void> _ensureVisible(String id) async {
+    final key = _keys[id];
+    final ctx = key?.currentContext;
+    if (ctx == null) return;
+
+    await Scrollable.ensureVisible(
+      ctx,
+      alignment: 0.5,
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // LIFECYCLE
+  // ─────────────────────────────────────────────
+  @override
   void dispose() {
-    _sub.cancel();
+    _sub?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
 
+  // ─────────────────────────────────────────────
+  // UI
+  // ─────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(12),
-      itemCount: _messages.length,
+      itemCount: _ordered.length,
       itemBuilder: (context, index) {
-        final msg = _messages[index];
-        final prev = index > 0 ? _messages[index - 1] : null;
+        final msg = _ordered[index];
+        final prev = index > 0 ? _ordered[index - 1] : null;
 
         final isMe = msg.sender != widget.otherUserId;
         final grouped = prev != null && prev.sender == msg.sender;
+        final key = _keys.putIfAbsent(msg.id, () => GlobalKey());
 
-        return MessageBubble(
-          message: msg,
-          isMe: isMe,
-          otherUserId: widget.otherUserId,
-          showAvatar: !grouped,
+        return Container(
+          key: key,
+          child: MessageBubble(
+            message: msg,
+            isMe: isMe,
+            otherUserId: widget.otherUserId,
+            showAvatar: !grouped,
+            onOpenMenu: () => _ensureVisible(msg.id),
+            scrollToBottom: scrollToBottom,
+          ),
         );
       },
     );

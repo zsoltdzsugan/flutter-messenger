@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:messenger/core/controller/chat_action_overlay_controller.dart';
+import 'package:messenger/core/controller/conversation.dart';
 import 'package:messenger/core/enums/devices.dart';
 import 'package:messenger/core/enums/gif_provider.dart';
 import 'package:messenger/core/enums/message_type.dart';
+import 'package:messenger/core/enums/picker_mode.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/models/gif.dart';
 import 'package:messenger/core/models/message.dart';
@@ -14,12 +16,15 @@ import 'package:messenger/view/home/chat/context_menu.dart';
 import 'package:messenger/view/home/chat/hover_context_menu.dart';
 import 'package:messenger/view/home/chat/image_viewer.dart';
 import 'package:messenger/widgets/gif/bubble.dart';
+import 'package:messenger/widgets/picker/picker.dart';
 
 class MessageBubble extends StatefulWidget {
   final Message message;
   final bool isMe;
   final String otherUserId;
   final bool showAvatar;
+  final Future<void> Function()? onOpenMenu;
+  final Function() scrollToBottom;
 
   const MessageBubble({
     super.key,
@@ -27,6 +32,8 @@ class MessageBubble extends StatefulWidget {
     required this.isMe,
     required this.otherUserId,
     required this.showAvatar,
+    required this.onOpenMenu,
+    required this.scrollToBottom,
   });
 
   @override
@@ -37,19 +44,23 @@ class _MessageBubbleState extends State<MessageBubble> {
   final LayerLink _layerLink = LayerLink();
   bool _hovered = false;
 
-  _deleteMessage(Message message) {
-    // TODO: Delete message
+  void _deleteMessage(Message message) {
+    ConversationController.instance.deleteMessage(message);
   }
 
-  _saveImage(Message message) {
-    // TODO: Save image
+  void _saveImage(Message message) {
+    ConversationController.instance.saveImage(message);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Image saved')));
   }
 
-  _forwardMessage(Message message) {
-    // TODO: Forward message
+  void _copyMessage(Message message) {
+    ConversationController.instance.copyMessage(message);
   }
 
   bool get _hasBubbleBackground {
+    if (widget.message.deleted) return true;
     switch (widget.message.type) {
       case MessageType.sticker:
         return false;
@@ -63,6 +74,12 @@ class _MessageBubbleState extends State<MessageBubble> {
     final t = context.adaptive;
     final device = t.device;
     final isDesktop = device == DeviceType.desktop;
+
+    final isDeleted = widget.message.deleted;
+    final canDelete = widget.isMe && !isDeleted;
+    final canCopy = widget.message.type == MessageType.text && !isDeleted;
+    final canSave = widget.message.type == MessageType.image && !isDeleted;
+    final canForward = !isDeleted;
 
     final maxWidth = MediaQuery.of(context).size.width * 0.55;
 
@@ -124,19 +141,52 @@ class _MessageBubbleState extends State<MessageBubble> {
                       CompositedTransformTarget(
                         link: _layerLink,
                         child: ContextMenu(
-                          onOpen: () {
-                            ChatActionOverlayController.showFor(
-                              context: context,
-                              link: _layerLink,
-                              isMe: widget.isMe,
-                              onDelete: widget.isMe
-                                  ? () => _deleteMessage(widget.message)
-                                  : null,
-                              onSave: widget.message.type == MessageType.image
-                                  ? () => _saveImage(widget.message)
-                                  : null,
-                              onForward: () => _forwardMessage(widget.message),
-                            );
+                          onOpen: () async {
+                            final link = _layerLink;
+                            final isMe = widget.isMe;
+
+                            final onCopy = canCopy
+                                ? () => _copyMessage(widget.message)
+                                : null;
+                            final onDelete = canDelete
+                                ? () => _deleteMessage(widget.message)
+                                : null;
+                            final onSave = canSave
+                                ? () => _saveImage(widget.message)
+                                : null;
+                            final onForward = canForward
+                                ? () {
+                                    showPicker(
+                                      context: context,
+                                      mode: PickerMode.forward,
+                                      onSelected: (user) {
+                                        ConversationController.instance
+                                            .forwardMessage(
+                                              widget.message,
+                                              user,
+                                            );
+                                      },
+                                    );
+                                  }
+                                : null;
+
+                            await widget.onOpenMenu?.call();
+
+                            if (!mounted) return;
+
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!mounted) return;
+
+                              ChatActionOverlayController.showFor(
+                                context: context,
+                                link: link,
+                                isMe: isMe,
+                                onCopy: onCopy,
+                                onDelete: onDelete,
+                                onSave: onSave,
+                                onForward: onForward,
+                              );
+                            });
                           },
                           child: Container(
                             decoration: _hasBubbleBackground
@@ -166,14 +216,30 @@ class _MessageBubbleState extends State<MessageBubble> {
                               duration: const Duration(milliseconds: 120),
                               curve: Curves.easeOut,
                               child: HoverActions(
-                                onDelete: widget.isMe
+                                onCopy: canCopy
+                                    ? () => _copyMessage(widget.message)
+                                    : null,
+                                onDelete: canDelete
                                     ? () => _deleteMessage(widget.message)
                                     : null,
-                                onSave: widget.message.type == MessageType.image
+                                onSave: canSave
                                     ? () => _saveImage(widget.message)
                                     : null,
-                                onForward: () =>
-                                    _forwardMessage(widget.message),
+                                onForward: canForward
+                                    ? () {
+                                        showPicker(
+                                          context: context,
+                                          mode: PickerMode.forward,
+                                          onSelected: (user) {
+                                            ConversationController.instance
+                                                .forwardMessage(
+                                                  widget.message,
+                                                  user,
+                                                );
+                                          },
+                                        );
+                                      }
+                                    : null,
                               ),
                             ),
                           ),
@@ -194,6 +260,10 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   EdgeInsets _bubblePadding() {
+    if (widget.message.deleted) {
+      return const EdgeInsets.symmetric(horizontal: 12, vertical: 8);
+    }
+
     switch (widget.message.type) {
       case MessageType.image:
       case MessageType.gif:
@@ -238,7 +308,14 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _singleImage(BuildContext context, MessageImage img, int index) {
     final images = widget.message.images
-        .map((e) => ChatImage(url: e.url, width: e.width, height: e.height))
+        .map(
+          (e) => ChatImage(
+            url: e.url,
+            width: e.width,
+            height: e.height,
+            messageId: widget.message.id,
+          ),
+        )
         .toList();
 
     return GestureDetector(
@@ -258,7 +335,15 @@ class _MessageBubbleState extends State<MessageBubble> {
           constraints: BoxConstraints(maxWidth: 320),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(imageUrl: img.url, fit: BoxFit.cover),
+            child: CachedNetworkImage(
+              imageUrl: img.url,
+              imageBuilder: (_, imgProvider) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  widget.scrollToBottom;
+                });
+                return Image(image: imgProvider, fit: BoxFit.contain);
+              },
+            ),
           ),
         ),
       ),
@@ -276,6 +361,16 @@ class _MessageBubbleState extends State<MessageBubble> {
     final bubbleTextColor = widget.isMe
         ? outgoingBubbleTextColor
         : incomingBubbleTextColor;
+
+    if (widget.message.deleted) {
+      return Text(
+        'Üzenet törölve',
+        style: TextStyle(
+          color: bubbleTextColor.withAlpha(150),
+          fontStyle: FontStyle.italic,
+        ),
+      );
+    }
 
     switch (widget.message.type) {
       case MessageType.text:
@@ -323,16 +418,14 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   Widget _buildMeta(BuildContext context) {
-    final isSeen =
-        widget.message.readBy.isEmpty ||
-            widget.message.readBy.length == 1 &&
-                widget.message.readBy.contains(widget.message.sender)
-        ? false
-        : true;
+    final isSeenByOther =
+        widget.isMe &&
+        widget.message.readBy.length > 1 &&
+        widget.message.readBy.contains(widget.otherUserId);
 
     final seenColor = context.resolveStateColor(
       ChatBubbleColors.seen,
-      isSelected: isSeen,
+      isSelected: isSeenByOther,
     );
     final timestampColor = context.resolveStateColor(
       ChatBubbleColors.timestamp,
@@ -345,7 +438,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           _formatTime(widget.message.timestamp),
           style: TextStyle(fontSize: 10, color: timestampColor),
         ),
-        if (widget.isMe) ...[
+        if (widget.isMe && isSeenByOther) ...[
           const SizedBox(width: 4),
           Icon(Icons.done_all, size: 14, color: seenColor),
         ],
