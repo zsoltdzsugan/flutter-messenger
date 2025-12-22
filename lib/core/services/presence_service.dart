@@ -38,10 +38,18 @@ class PresenceService with WidgetsBindingObserver {
     final user = _auth.currentUser;
     if (user == null) return;
 
+    return _firestore.collection('users').doc(user.uid).set({
+      'is_online': isOnline,
+      'last_seen': FieldValue.serverTimestamp(),
+      'updated_at': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    /*
     await _firestore.collection('users').doc(user.uid).update({
       'is_online': isOnline,
       'last_seen': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),
     });
+     */
   }
 }

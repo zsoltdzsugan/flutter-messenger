@@ -8,6 +8,9 @@ import 'package:messenger/core/utils/image_compression.dart';
 import 'package:uuid/uuid.dart';
 
 class StorageService {
+  StorageService._privateConstructor();
+  static final instance = StorageService._privateConstructor();
+
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final _uuid = const Uuid();
 
@@ -31,6 +34,17 @@ class StorageService {
       width: decoded.width.toDouble(),
       height: decoded.height.toDouble(),
     );
+  }
+
+  Future<String> uploadProfilePicture(String uid, File file) async {
+    final Uint8List compressed = await compressImage(file);
+
+    final id = _uuid.v4();
+    final ref = _storage.ref().child('profile_pictures/$uid/$id.jpg');
+
+    await ref.putData(compressed, SettableMetadata(contentType: 'image/jpeg'));
+
+    return await ref.getDownloadURL();
   }
 }
 

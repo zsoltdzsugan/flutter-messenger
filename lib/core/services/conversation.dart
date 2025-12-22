@@ -92,21 +92,6 @@ class ConversationService {
         .map((s) => s.docs.map(Message.fromFirestore).toList());
   }
 
-  /// Pagination: fetch older messages
-  Future<List<Message>> fetchOlderMessages(
-    String conversationId, {
-    required DocumentSnapshot lastDoc,
-    int limit = 30,
-  }) async {
-    final snap = await _messages(conversationId)
-        .orderBy('timestamp', descending: true)
-        .startAfterDocument(lastDoc)
-        .limit(limit)
-        .get();
-
-    return snap.docs.map(Message.fromFirestore).toList();
-  }
-
   Future<QuerySnapshot<Map<String, dynamic>>> fetchOlderMessageSnapshots(
     String cid, {
     required QueryDocumentSnapshot<Map<String, dynamic>> lastDoc,
