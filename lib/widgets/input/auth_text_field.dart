@@ -8,6 +8,9 @@ class AuthTextField extends StatefulWidget {
   final String hint;
   final bool obscure;
   final String focusColor;
+  final ValueChanged<String>? onSubmitted;
+  final TextInputAction textInputAction;
+  final FocusNode? focusNode;
 
   const AuthTextField({
     super.key,
@@ -16,6 +19,9 @@ class AuthTextField extends StatefulWidget {
     required this.hint,
     this.obscure = false,
     this.focusColor = "primary",
+    this.onSubmitted,
+    this.textInputAction = TextInputAction.next,
+    this.focusNode,
   });
 
   @override
@@ -30,7 +36,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
   void initState() {
     super.initState();
     _isObscured = widget.obscure;
-    _focusNode = FocusNode();
+    _focusNode = widget.focusNode ?? FocusNode();
 
     _focusNode.addListener(() {
       setState(() {});
@@ -81,6 +87,8 @@ class _AuthTextFieldState extends State<AuthTextField> {
         controller: widget.controller,
         focusNode: _focusNode,
         keyboardType: widget.keyboardType,
+        textInputAction: widget.textInputAction,
+        onSubmitted: widget.onSubmitted,
         obscureText: _isObscured,
         cursorColor: textColor,
         cursorHeight: t.font(16),

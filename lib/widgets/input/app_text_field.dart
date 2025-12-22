@@ -6,11 +6,13 @@ import 'package:messenger/core/utils/icon_data.dart';
 
 class AppTextField extends StatefulWidget {
   final TextEditingController controller;
+  final FocusNode? focusNode;
   final TextInputType keyboardType;
   final String hint;
   final String focusColor;
   final Function()? onPressed;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final IconState state;
   final IconData? idleIcon;
   final List<AppIconData>? prefixIcons;
@@ -18,12 +20,14 @@ class AppTextField extends StatefulWidget {
   const AppTextField({
     super.key,
     required this.controller,
+    this.focusNode,
     required this.keyboardType,
     required this.hint,
     required this.state,
     this.focusColor = "primary",
     this.onPressed,
     this.onChanged,
+    this.onSubmitted,
     this.idleIcon = Icons.save,
     this.prefixIcons,
   });
@@ -38,7 +42,7 @@ class _AppTextFieldState extends State<AppTextField> {
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
+    _focusNode = widget.focusNode ?? FocusNode();
 
     _focusNode.addListener(() {
       setState(() {});
@@ -64,9 +68,13 @@ class _AppTextFieldState extends State<AppTextField> {
       mainAxisSize: MainAxisSize.min,
       children: [
         ...widget.prefixIcons!.map((data) {
-          return IconButton(onPressed: data.onTap, icon: Icon(data.icon));
+          return IconButton(
+            onPressed: data.onTap,
+            icon: Icon(data.icon),
+            iconSize: data.iconSize,
+          );
         }),
-        VerticalDivider(indent: 8, endIndent: 8, color: dividerColor),
+        VerticalDivider(indent: 10, endIndent: 10, color: dividerColor),
       ],
     );
   }
@@ -84,7 +92,7 @@ class _AppTextFieldState extends State<AppTextField> {
       case IconState.error:
         return const Icon(Icons.close, color: Colors.red);
       default:
-        return Icon(widget.idleIcon);
+        return Icon(widget.idleIcon, size: 28);
     }
   }
 
@@ -125,12 +133,15 @@ class _AppTextFieldState extends State<AppTextField> {
       child: TextField(
         controller: widget.controller,
         focusNode: _focusNode,
+        textInputAction: TextInputAction.send,
         keyboardType: widget.keyboardType,
         onChanged: widget.onChanged,
+        onSubmitted: widget.onSubmitted,
         cursorColor: textColor,
         cursorHeight: t.font(16),
         textAlignVertical: TextAlignVertical(y: 0.75),
         style: TextStyle(
+          height: t.spacing(1.0),
           color: textColor,
           fontSize: t.font(14),
           fontFamily: context.core.fontFamily,
