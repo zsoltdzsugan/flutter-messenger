@@ -59,8 +59,8 @@ class AnimatedFilterButton extends StatelessWidget {
           child: InkWell(
             splashColor: colors.primary.withOpacity(0.3),
             highlightColor: colors.primary.withOpacity(0.15),
-            onTap: onTap, // InkWell handles the tap feedback
-            borderRadius: borderRadius, // Match the container's border radius
+            onTap: onTap,
+            borderRadius: borderRadius,
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: t.spacing(c.spaceSmall)),
               child: LayoutBuilder(

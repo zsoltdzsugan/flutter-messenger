@@ -6,8 +6,8 @@ import 'package:messenger/core/utils/chat_image.dart';
 import 'package:messenger/view/home/chat/composer.dart';
 import 'package:messenger/view/home/chat/header.dart';
 import 'package:messenger/view/home/image/container.dart';
-import 'package:messenger/widgets/chat/message_list.dart';
 import 'package:messenger/widgets/chat/typing_indicator.dart';
+import 'package:messenger/widgets/message/container.dart';
 
 class ChatContainer extends StatefulWidget {
   final String conversationId;
@@ -91,12 +91,21 @@ class _ChatContainerState extends State<ChatContainer> {
                               key: const ValueKey('messages'),
                               children: [
                                 Expanded(
+                                  child: MessageContainer(
+                                    key: ValueKey(widget.conversationId),
+                                    conversationId: widget.conversationId,
+                                    otherUserId: widget.otherUserId,
+                                  ),
+                                ),
+                                /*
+                                Expanded(
                                   child: MessageList(
                                     key: ValueKey(widget.conversationId),
                                     conversationId: widget.conversationId,
                                     otherUserId: widget.otherUserId,
                                   ),
                                 ),
+                                */
                                 TypingIndicator(
                                   conversationId: widget.conversationId,
                                 ),

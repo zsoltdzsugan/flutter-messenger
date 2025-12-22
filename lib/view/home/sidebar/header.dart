@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:messenger/core/controller/user.dart';
 import 'package:messenger/core/enums/presence_state.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
@@ -7,17 +8,19 @@ import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/widgets/chat/avatar.dart';
 
 class SidebarHeader extends StatelessWidget {
-  final bool settingsOpen;
   final bool sidebarCollapsed;
   final VoidCallback onSettingsTap;
   final VoidCallback onSidebarToggle;
+  final bool isSettingsOpen;
+  final Animation<double> animationDelay;
 
   const SidebarHeader({
     super.key,
-    required this.settingsOpen,
     required this.sidebarCollapsed,
     required this.onSettingsTap,
     required this.onSidebarToggle,
+    required this.isSettingsOpen,
+    required this.animationDelay,
   });
 
   @override
@@ -25,25 +28,13 @@ class SidebarHeader extends StatelessWidget {
     final t = context.adaptive;
     final c = context.components;
 
-    final avatarBgColor = context.resolveStateColor(
-      AvatarColors.bg,
-      isSelected: settingsOpen,
-    );
-    final avatarTextColor = context.resolveStateColor(
-      AvatarColors.text,
-      isSelected: settingsOpen,
-    );
-    final nameTextColor = context.resolveStateColor(
-      NameColors.text,
-      isSelected: settingsOpen,
-    );
-    final iconColor = context.resolveStateColor(
-      SettingIconColors.bg,
-      isSelected: settingsOpen,
-    );
+    final avatarBgColor = context.resolveStateColor(AvatarColors.bg);
+    final avatarTextColor = context.resolveStateColor(AvatarColors.text);
+    final nameTextColor = context.resolveStateColor(NameColors.text);
+    final iconColor = context.resolveStateColor(SettingIconColors.bg);
 
-    Widget buildAvatar(bool settingsOpen, Map<String, dynamic>? user) {
-      if (settingsOpen) {
+    Widget buildAvatar(Map<String, dynamic>? user) {
+      if (isSettingsOpen) {
         return CircleAvatar(
           radius: t.spacing(16),
           backgroundColor: avatarBgColor,
@@ -51,7 +42,7 @@ class SidebarHeader extends StatelessWidget {
         );
       }
 
-      final photo = user?['photoUrl'] ?? '';
+      final photo = user?['photo_url'] ?? '';
       final name = (user?['name'] as String?) ?? 'U';
 
       final presence = () {
@@ -70,10 +61,14 @@ class SidebarHeader extends StatelessWidget {
         photoUrl: photo,
         name: name,
         presence: presence,
-        backgroundColor: avatarBgColor,
-        textColor: avatarTextColor,
+        size: t.spacing(c.avatarSize),
       );
     }
+
+    final Animation<double> delayedAnimation =
+        animationDelay is Animation<double> && animationDelay.value < 1.0
+        ? animationDelay
+        : const AlwaysStoppedAnimation(1.0);
 
     return ValueListenableBuilder<bool>(
       valueListenable: UserController.instance.isLoading,
@@ -81,16 +76,15 @@ class SidebarHeader extends StatelessWidget {
         return ValueListenableBuilder<Map<String, dynamic>?>(
           valueListenable: UserController.instance.userData,
           builder: (context, user, _) {
-            // 🚫 Not ready yet → render NOTHING
             if (loading || user == null) {
-              return const SizedBox(height: 56); // keeps layout stable
+              return const SizedBox.shrink();
             }
 
-            final avatar = buildAvatar(settingsOpen, user);
+            final avatar = buildAvatar(user);
 
             return Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: t.spacing(c.spaceXSmall),
+                horizontal: t.spacing(8),
                 vertical: t.spacing(c.spaceSmall),
               ),
               child: Row(
@@ -98,6 +92,7 @@ class SidebarHeader extends StatelessWidget {
                 children: [
                   // User block
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       MouseRegion(
                         cursor: SystemMouseCursors.click,
@@ -107,26 +102,50 @@ class SidebarHeader extends StatelessWidget {
                           child: avatar,
                         ),
                       ),
-                      SizedBox(width: t.spacing(c.spaceSmall)),
 
-                      Text(
-                        user['name'], // ✅ SAFE
-                        style: TextStyle(
-                          color: nameTextColor,
-                          fontSize: t.font(16),
-                          fontWeight: FontWeight.bold,
+                      if (!sidebarCollapsed && !isSettingsOpen)
+                        SizeTransition(
+                          axis: Axis.horizontal,
+                          sizeFactor: delayedAnimation,
+                          child: FadeTransition(
+                            opacity: delayedAnimation,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                left: t.spacing(c.spaceSmall),
+                              ),
+                              child: Text(
+                                user['name'],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: nameTextColor,
+                                  fontSize: t.font(16),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
                     ],
                   ),
 
                   // Sidebar toggle
-                  IconButton(
-                    icon: sidebarCollapsed
-                        ? Icon(Icons.chevron_right, color: iconColor)
-                        : Icon(Icons.chevron_left, color: iconColor),
-                    onPressed: onSidebarToggle,
-                  ),
+                  if (!sidebarCollapsed)
+                    SizeTransition(
+                      axis: Axis.horizontal,
+                      sizeFactor: delayedAnimation,
+                      child: FadeTransition(
+                        opacity: delayedAnimation,
+                        child: IconButton(
+                          icon: Icon(
+                            Symbols.left_panel_close_rounded,
+                            color: iconColor,
+                          ),
+                          iconSize: t.font(20),
+                          onPressed: onSidebarToggle,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             );

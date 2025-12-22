@@ -79,20 +79,23 @@ class _AppTextFieldState extends State<AppTextField> {
     );
   }
 
-  Widget _buildSuffixIcon(IconState state) {
+  Widget _buildSuffixIcon(IconState state, BuildContext context) {
+    final t = context.adaptive;
+    final c = context.components;
+
     switch (state) {
       case IconState.saving:
-        return const SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(strokeWidth: 2),
+        return SizedBox(
+          width: t.font(20),
+          height: t.font(20),
+          child: const CircularProgressIndicator(strokeWidth: 2),
         );
       case IconState.success:
-        return const Icon(Icons.check, color: Colors.green);
+        return Icon(Icons.check, color: Colors.green, size: t.font(20));
       case IconState.error:
-        return const Icon(Icons.close, color: Colors.red);
+        return Icon(Icons.close, color: Colors.red, size: t.font(20));
       default:
-        return Icon(widget.idleIcon, size: 28);
+        return Icon(widget.idleIcon, size: t.font(20));
     }
   }
 
@@ -160,9 +163,9 @@ class _AppTextFieldState extends State<AppTextField> {
           ),
           suffixIconColor: textColor,
           suffixIcon: Padding(
-            padding: const EdgeInsets.only(right: 6.0),
+            padding: const EdgeInsets.only(right: 4.0),
             child: IconButton(
-              icon: _buildSuffixIcon(widget.state),
+              icon: _buildSuffixIcon(widget.state, context),
               onPressed: widget.onPressed,
             ),
           ),

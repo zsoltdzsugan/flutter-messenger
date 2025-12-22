@@ -23,7 +23,7 @@ class AppTheme {
           mainButtonHeight: 30,
           sectionTopPadding: 10,
           sectionBottomPadding: 30,
-          avatarSize: 20.0,
+          avatarSize: 32.0,
           mainLogoHeight: 140,
           spaceXSmall: 6,
           spaceSmall: 10,
@@ -32,10 +32,12 @@ class AppTheme {
           titleLarge: 20.0,
           mainButtonFontSize: 16.0,
           heroSeparatorWidth: 140,
-          sidebarWidth: 300,
+          sidebarMaxWidth: 300,
+          sidebarMinWidth: 156,
           searchbarHeight: 70,
         ),
       ],
+      useMaterial3: true,
     );
   }
 
@@ -58,7 +60,7 @@ class AppTheme {
           mainButtonHeight: 30,
           sectionTopPadding: 10,
           sectionBottomPadding: 30,
-          avatarSize: 20.0,
+          avatarSize: 32.0,
           mainLogoHeight: 140,
           spaceXSmall: 6,
           spaceSmall: 10,
@@ -67,10 +69,12 @@ class AppTheme {
           titleLarge: 20.0,
           mainButtonFontSize: 16.0,
           heroSeparatorWidth: 160,
-          sidebarWidth: 300,
+          sidebarMaxWidth: 300,
+          sidebarMinWidth: 156,
           searchbarHeight: 60,
         ),
       ],
+      useMaterial3: true,
     );
   }
 }

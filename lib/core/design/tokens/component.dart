@@ -15,7 +15,8 @@ class ComponentTokens extends ThemeExtension<ComponentTokens> {
   final double titleLarge;
   final double mainButtonFontSize;
   final double heroSeparatorWidth;
-  final double sidebarWidth;
+  final double sidebarMaxWidth;
+  final double sidebarMinWidth;
   final double searchbarHeight;
 
   const ComponentTokens({
@@ -32,7 +33,8 @@ class ComponentTokens extends ThemeExtension<ComponentTokens> {
     required this.titleLarge,
     required this.mainButtonFontSize,
     required this.heroSeparatorWidth,
-    required this.sidebarWidth,
+    required this.sidebarMaxWidth,
+    required this.sidebarMinWidth,
     required this.searchbarHeight,
   });
 
@@ -51,7 +53,8 @@ class ComponentTokens extends ThemeExtension<ComponentTokens> {
     double? titleLarge,
     double? mainButtonFontSize,
     double? heroSeparatorWidth,
-    double? sidebarWidth,
+    double? sidebarMaxWidth,
+    double? sidebarMinWidth,
     double? searchbarHeight,
   }) {
     return ComponentTokens(
@@ -68,7 +71,8 @@ class ComponentTokens extends ThemeExtension<ComponentTokens> {
       titleLarge: titleLarge ?? this.titleLarge,
       mainButtonFontSize: mainButtonFontSize ?? this.mainButtonFontSize,
       heroSeparatorWidth: heroSeparatorWidth ?? this.heroSeparatorWidth,
-      sidebarWidth: sidebarWidth ?? this.sidebarWidth,
+      sidebarMaxWidth: sidebarMaxWidth ?? this.sidebarMaxWidth,
+      sidebarMinWidth: sidebarMinWidth ?? this.sidebarMinWidth,
       searchbarHeight: searchbarHeight ?? this.searchbarHeight,
     );
   }

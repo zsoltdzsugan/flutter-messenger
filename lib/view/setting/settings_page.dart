@@ -1,10 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:messenger/core/controller/user.dart';
 import 'package:messenger/core/enums/icon_state.dart';
+import 'package:messenger/core/enums/presence_state.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/core/theme/provider.dart';
+import 'package:messenger/core/utils/app_error.dart';
+import 'package:messenger/widgets/chat/avatar.dart';
 import 'package:messenger/widgets/input/app_text_field.dart';
+import 'package:messenger/widgets/picker/delete_account_dialog.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -20,6 +27,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late final TextEditingController nameController;
   IconState suffixState = IconState.idle;
+  bool _isUploadingAvatar = false;
   bool _isDeleteAccountHovered = false;
   bool _isLogoutHovered = false;
 
@@ -72,6 +80,59 @@ class _SettingsPageState extends State<SettingsPage> {
         });
       }
     });
+  }
+
+  Future<void> _pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+
+    if (pickedFile == null) return;
+
+    setState(() => _isUploadingAvatar = true);
+
+    try {
+      await UserController.instance.updateProfilePicture(File(pickedFile.path));
+    } on AppError catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+
+    setState(() => _isUploadingAvatar = false);
+  }
+
+  Widget _avatarUploader(BuildContext context) {
+    final t = context.adaptive;
+    final c = context.components;
+
+    return ValueListenableBuilder<Map<String, dynamic>?>(
+      valueListenable: UserController.instance.userData,
+      builder: (_, userData, __) {
+        final photoUrl = userData?['photo_url'] ?? '';
+        final name = userData?['name'] ?? '';
+
+        return Center(
+          child: GestureDetector(
+            onTap: _isUploadingAvatar ? null : _pickAndUploadAvatar,
+            child: Avatar(
+              photoUrl: photoUrl,
+              name: name,
+              presence: PresenceState.online,
+              showPresence: false,
+              showIcon: true,
+              iconData: Icons.camera_alt,
+              loading: _isUploadingAvatar,
+              onTap: _pickAndUploadAvatar,
+              size: t.spacing(c.avatarSize * 3),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -128,6 +189,19 @@ class _SettingsPageState extends State<SettingsPage> {
               letterSpacing: 1.25,
             ),
           ),
+
+          SizedBox(height: t.spacing(c.spaceMedium)),
+
+          Text(
+            "Profilkép",
+            style: TextStyle(
+              color: textColor,
+              fontSize: t.font(14),
+              fontFeatures: [FontFeature.enable('smcp')],
+              letterSpacing: 1.25,
+            ),
+          ),
+          _avatarUploader(context),
 
           SizedBox(height: t.spacing(c.spaceMedium)),
 
@@ -196,15 +270,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
                   onTap: () async {
-                    await UserController.instance.delete();
-                    // Navigate back to welcome/login
-                    if (!mounted) return;
-
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      'WelcomePage',
-                      (_) => false,
+                    final result = await showDialog<bool>(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) => const DeleteAccountDialog(),
                     );
+
+                    if (result == true && mounted) {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        'WelcomePage',
+                        (_) => false,
+                      );
+                    }
                   },
                   child: Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
@@ -237,7 +315,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(
-                  horizontal: t.spacing(c.spaceMedium),
+                  horizontal: t.spacing(c.spaceSmall),
                   vertical: t.spacing(c.spaceXSmall),
                 ),
                 decoration: BoxDecoration(
@@ -262,6 +340,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
+          SizedBox(height: t.spacing(1)),
         ],
       ),
     );

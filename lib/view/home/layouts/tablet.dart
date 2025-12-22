@@ -1,78 +1,73 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:messenger/core/controller/user.dart';
+import 'package:messenger/core/enums/sidebar_filter.dart';
 import 'package:messenger/core/extensions/design_extension.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/view/home/chat/container.dart';
 import 'package:messenger/view/home/sidebar/container.dart';
-import 'package:messenger/view/home/sidebar/filter.dart';
 
-class HomeTabletLayout extends StatefulWidget {
-  const HomeTabletLayout({super.key});
+class HomeTabletLayout extends StatelessWidget {
+  final SidebarFilter filter;
+  final bool isSidebarOpen;
+  final TextEditingController searchController;
+  final Map<String, Map<String, dynamic>> usersCache;
+  final DocumentReference? activeConversation;
+  final String? otherUserId;
 
-  @override
-  State<HomeTabletLayout> createState() => _HomeTabletLayoutState();
-}
+  final ValueChanged<SidebarFilter> onFilterChanged;
+  final ValueChanged<DocumentReference> onConversationSelected;
+  final VoidCallback onSidebarToggle;
+  final void Function(String uid) onUserNeeded;
 
-class _HomeTabletLayoutState extends State<HomeTabletLayout> {
-  SidebarFilter _filter = SidebarFilter.messages;
+  final bool showSettings;
+  final VoidCallback onOpenSettings;
+  final VoidCallback onCloseSettings;
 
-  String _query = '';
-  DocumentReference? _selectedConversation;
-
-  DocumentReference? _activeConversation;
-  String? _otherUserId;
-
-  // search controller + cache
-  final TextEditingController _search = TextEditingController();
-  final Map<String, Map<String, dynamic>> _usersCache = {};
+  const HomeTabletLayout({
+    super.key,
+    required this.filter,
+    required this.isSidebarOpen,
+    required this.searchController,
+    required this.usersCache,
+    this.activeConversation,
+    this.otherUserId,
+    required this.onFilterChanged,
+    required this.onConversationSelected,
+    required this.onSidebarToggle,
+    required this.onUserNeeded,
+    required this.showSettings,
+    required this.onOpenSettings,
+    required this.onCloseSettings,
+  });
 
   @override
   Widget build(BuildContext context) {
     final bgColor = context.resolveStateColor(MainBgColors.bg);
+
+    bool hasActiveConversation =
+        activeConversation != null && otherUserId != null;
 
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
         child: Row(
           children: [
-            Expanded(
-              flex: 2,
-              child: SidebarContainer(
-                filter: _filter,
-                onFilterChanged: (f) => setState(() => _filter = f),
-                searchController: _search,
-                onSearchChanged: (q) => setState(() => _query = q),
-                usersCache: _usersCache,
-                onConversationSelected: (ref) async {
-                  final snap = await ref.get();
-                  final data = snap.data() as Map<String, dynamic>;
-
-                  final participants = List<String>.from(data["participants"]);
-                  final currentId = UserController.instance.currentUser!.uid;
-                  final otherId = participants.firstWhere(
-                    (id) => id != currentId,
-                  );
-
-                  setState(() {
-                    _activeConversation = ref;
-                    _otherUserId = otherId;
-                  });
-                },
-                onCacheUpdate: (uid, data) {
-                  setState(() => _usersCache[uid] = data);
-                },
-              ),
+            SidebarContainer(
+              filter: filter,
+              onFilterChanged: onFilterChanged,
+              searchController: searchController,
+              usersCache: usersCache,
+              onConversationSelected: onConversationSelected,
+              onUserNeeded: onUserNeeded,
             ),
 
             Expanded(
-              flex: 5,
-              child: _activeConversation == null
-                  ? const Center(child: Text("Válassz egy beszélgetést"))
-                  : ChatContainer(
-                      conversationId: _activeConversation?.id ?? '',
-                      otherUserId: _otherUserId ?? '',
-                    ),
+              child: hasActiveConversation
+                  ? ChatContainer(
+                      conversationId: activeConversation!.id,
+                      otherUserId: otherUserId!,
+                    )
+                  : const Center(child: Text("Válassz egy beszélgetést")),
             ),
           ],
         ),

@@ -174,6 +174,16 @@ class AvatarColors {
     light: (c) => c.background70,
     dark: (c) => c.surface70,
   );
+
+  static final unreadBg = StateColor(
+    light: (c) => c.accent60,
+    dark: (c) => c.accent,
+  );
+
+  static final unreadText = StateColor(
+    light: (c) => c.background90,
+    dark: (c) => c.surface90,
+  );
 }
 
 class SettingIconColors {
@@ -285,7 +295,7 @@ class ChatBubbleColors {
   );
 
   static final timestamp = StateColor(
-    light: (c) => c.background,
+    light: (c) => c.surface50,
     dark: (c) => c.surface50,
   );
   static final seen = StateColor(
@@ -305,5 +315,16 @@ class ContextMenuColors {
   static final icon = StateColor(
     light: (c) => c.background,
     dark: (c) => c.surface,
+  );
+}
+
+class PickerColors {
+  static final bg = StateColor(
+    light: (c) => c.background70,
+    dark: (c) => c.primary20,
+  );
+  static final border = StateColor(
+    light: (c) => c.surface20,
+    dark: (c) => c.surface50,
   );
 }

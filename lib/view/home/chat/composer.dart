@@ -104,7 +104,6 @@ class _ChatComposerState extends State<ChatComposer> {
   void dispose() {
     _typingDebounce?.cancel();
     _controller.dispose();
-    _focusNode.dispose();
     super.dispose();
   }
 
@@ -137,12 +136,12 @@ class _ChatComposerState extends State<ChatComposer> {
               prefixIcons: [
                 AppIconData(
                   icon: Icons.add_box_outlined,
-                  iconSize: 28,
+                  iconSize: t.font(20),
                   onTap: () => _sendImages(),
                 ),
                 AppIconData(
                   icon: Icons.gif_box_rounded,
-                  iconSize: 28,
+                  iconSize: t.font(20),
                   onTap: () {
                     showPicker(
                       context: context,
@@ -159,7 +158,7 @@ class _ChatComposerState extends State<ChatComposer> {
                 ),
                 AppIconData(
                   icon: Icons.emoji_emotions_rounded,
-                  iconSize: 28,
+                  iconSize: t.font(20),
                   onTap: () {
                     showPicker(
                       context: context,
