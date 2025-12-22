@@ -10,6 +10,7 @@ import 'package:messenger/view/register/register_page.dart';
 import 'package:messenger/view/root_page.dart';
 import 'package:messenger/view/welcome/welcome_page.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'firebase_options.dart';
 
@@ -17,6 +18,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await windowManager.ensureInitialized();
+
+  const minWindowSize = Size(700, 500);
+  windowManager.setMinimumSize(minWindowSize);
+  WindowOptions windowOptions = const WindowOptions(
+    minimumSize: minWindowSize,
+    size: Size(1280, 720),
+    center: true,
+  );
 
   runApp(const MyApp());
 }
