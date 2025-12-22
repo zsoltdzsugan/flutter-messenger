@@ -24,6 +24,9 @@ class _RegisterPageState extends State<RegisterPage> {
   bool isLoading = false;
   String? errorMessage;
 
+  final FocusNode emailFocus = FocusNode();
+  final FocusNode passwordFocus = FocusNode();
+
   Future<void> doRegister() async {
     setState(() {
       isLoading = true;
@@ -87,6 +90,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       keyboardType: TextInputType.name,
                       hint: "Felhasználónév",
                       focusColor: "secondary",
+                      textInputAction: TextInputAction.next,
+                      onSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(emailFocus);
+                      },
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
                     AuthTextField(
@@ -94,6 +101,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       keyboardType: TextInputType.emailAddress,
                       hint: "Email cím",
                       focusColor: "secondary",
+                      textInputAction: TextInputAction.next,
+                      onSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(passwordFocus);
+                      },
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
                     AuthTextField(
@@ -102,6 +113,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       hint: "Jelszó",
                       obscure: true,
                       focusColor: "secondary",
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => doRegister(),
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
                     SecondaryButton(

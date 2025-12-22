@@ -20,6 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
   bool loading = false;
   String? errorMessage;
+  final passwordFocus = FocusNode();
 
   Future<void> doLogin() async {
     setState(() {
@@ -86,6 +87,10 @@ class _LoginPageState extends State<LoginPage> {
                       keyboardType: TextInputType.emailAddress,
                       hint: "Email",
                       focusColor: "primary",
+                      textInputAction: TextInputAction.next,
+                      onSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(passwordFocus);
+                      },
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
                     AuthTextField(
@@ -94,6 +99,9 @@ class _LoginPageState extends State<LoginPage> {
                       hint: "Jelszó",
                       obscure: true,
                       focusColor: "primary",
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => doLogin(),
+                      focusNode: passwordFocus,
                     ),
                     SizedBox(height: t.spacing(c.spaceSmall)),
                     MainButton(label: "Login", onPressed: doLogin),
