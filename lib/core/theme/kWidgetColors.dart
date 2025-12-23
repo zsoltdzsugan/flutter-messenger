@@ -313,7 +313,7 @@ class ChatBubbleColors {
 
 class ContextMenuColors {
   static final icon = StateColor(
-    light: (c) => c.background,
+    light: (c) => c.surface,
     dark: (c) => c.surface,
   );
 }
