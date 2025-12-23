@@ -129,6 +129,7 @@ class _ChatComposerState extends State<ChatComposer> {
               keyboardType: TextInputType.text,
               hint: 'Üzenet küldése...',
               idleIcon: Icons.send,
+              suffixTooltip: 'Küldés',
               onChanged: _onChanged,
               onPressed: _sendText,
               onSubmitted: (_) => _sendText(),
@@ -138,10 +139,12 @@ class _ChatComposerState extends State<ChatComposer> {
                   icon: Icons.add_box_outlined,
                   iconSize: t.font(20),
                   onTap: () => _sendImages(),
+                  tooltip: 'Kép(ek)',
                 ),
                 AppIconData(
                   icon: Icons.gif_box_rounded,
                   iconSize: t.font(20),
+                  tooltip: 'Mozgóképek',
                   onTap: () {
                     showPicker(
                       context: context,
@@ -159,6 +162,7 @@ class _ChatComposerState extends State<ChatComposer> {
                 AppIconData(
                   icon: Icons.emoji_emotions_rounded,
                   iconSize: t.font(20),
+                  tooltip: 'Matricák',
                   onTap: () {
                     showPicker(
                       context: context,

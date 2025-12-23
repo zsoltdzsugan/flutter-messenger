@@ -16,6 +16,7 @@ class AppTextField extends StatefulWidget {
   final IconState state;
   final IconData? idleIcon;
   final List<AppIconData>? prefixIcons;
+  final String suffixTooltip;
 
   const AppTextField({
     super.key,
@@ -30,6 +31,7 @@ class AppTextField extends StatefulWidget {
     this.onSubmitted,
     this.idleIcon = Icons.save,
     this.prefixIcons,
+    required this.suffixTooltip,
   });
 
   @override
@@ -69,6 +71,7 @@ class _AppTextFieldState extends State<AppTextField> {
       children: [
         ...widget.prefixIcons!.map((data) {
           return IconButton(
+            tooltip: data.tooltip,
             onPressed: data.onTap,
             icon: Icon(data.icon),
             iconSize: data.iconSize,
@@ -79,9 +82,12 @@ class _AppTextFieldState extends State<AppTextField> {
     );
   }
 
-  Widget _buildSuffixIcon(IconState state, BuildContext context) {
+  Widget _buildSuffixIcon(
+    IconState state,
+    BuildContext context,
+    String tooltip,
+  ) {
     final t = context.adaptive;
-    final c = context.components;
 
     switch (state) {
       case IconState.saving:
@@ -95,7 +101,10 @@ class _AppTextFieldState extends State<AppTextField> {
       case IconState.error:
         return Icon(Icons.close, color: Colors.red, size: t.font(20));
       default:
-        return Icon(widget.idleIcon, size: t.font(20));
+        return Tooltip(
+          message: tooltip,
+          child: Icon(widget.idleIcon, size: t.font(20)),
+        );
     }
   }
 
@@ -165,7 +174,11 @@ class _AppTextFieldState extends State<AppTextField> {
           suffixIcon: Padding(
             padding: const EdgeInsets.only(right: 4.0),
             child: IconButton(
-              icon: _buildSuffixIcon(widget.state, context),
+              icon: _buildSuffixIcon(
+                widget.state,
+                context,
+                widget.suffixTooltip,
+              ),
               onPressed: widget.onPressed,
             ),
           ),

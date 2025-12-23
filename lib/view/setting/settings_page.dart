@@ -224,6 +224,7 @@ class _SettingsPageState extends State<SettingsPage> {
             hint: 'Felhasználónév',
             state: suffixState,
             onPressed: _saveName,
+            suffixTooltip: 'Mentés',
           ),
 
           SizedBox(height: t.spacing(c.spaceMedium)),
