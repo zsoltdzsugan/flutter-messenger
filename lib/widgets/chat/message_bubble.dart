@@ -13,7 +13,6 @@ import 'package:messenger/core/models/message_image.dart';
 import 'package:messenger/core/theme/kWidgetColors.dart';
 import 'package:messenger/core/utils/chat_image.dart';
 import 'package:messenger/view/home/chat/context_menu.dart';
-import 'package:messenger/view/home/chat/hover_context_menu.dart';
 import 'package:messenger/view/home/chat/image_viewer.dart';
 import 'package:messenger/widgets/gif/bubble.dart';
 import 'package:messenger/widgets/picker/picker.dart';
@@ -23,6 +22,7 @@ class MessageBubble extends StatefulWidget {
   final bool isMe;
   final String otherUserId;
   final Future<void> Function()? onOpenMenu;
+  final BoxConstraints constraints;
 
   const MessageBubble({
     super.key,
@@ -30,6 +30,7 @@ class MessageBubble extends StatefulWidget {
     required this.isMe,
     required this.otherUserId,
     required this.onOpenMenu,
+    required this.constraints,
   });
 
   @override
@@ -37,8 +38,9 @@ class MessageBubble extends StatefulWidget {
 }
 
 class _MessageBubbleState extends State<MessageBubble> {
-  final LayerLink _layerLink = LayerLink();
-  bool _hovered = false;
+  //final LayerLink _layerLink = LayerLink();
+  //bool _hovered = false;
+  final GlobalKey _bubbleKey = GlobalKey();
 
   void _deleteMessage(Message message) {
     ConversationController.instance.deleteMessage(message);
@@ -77,7 +79,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     final canSave = widget.message.type == MessageType.image && !isDeleted;
     final canForward = !isDeleted;
 
-    final maxWidth = MediaQuery.of(context).size.width * 0.55;
+    final maxWidth = widget.constraints.maxWidth * 0.5;
 
     final radius = BorderRadius.only(
       topLeft: const Radius.circular(16),
@@ -113,11 +115,10 @@ class _MessageBubbleState extends State<MessageBubble> {
             : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!widget.isMe) const CircleAvatar(radius: 14),
-
           if (!widget.isMe) const SizedBox(width: 6),
 
           ConstrainedBox(
+            key: _bubbleKey,
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: Column(
               crossAxisAlignment: widget.isMe
@@ -125,81 +126,86 @@ class _MessageBubbleState extends State<MessageBubble> {
                   : CrossAxisAlignment.start,
               children: [
                 MouseRegion(
-                  onEnter: (_) {
+                  /*onEnter: (_) {
                     if (isDesktop) setState(() => _hovered = true);
                   },
                   onExit: (_) {
                     if (isDesktop) setState(() => _hovered = false);
-                  },
+                  },*/
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      CompositedTransformTarget(
-                        link: _layerLink,
-                        child: ContextMenu(
-                          onOpen: () async {
-                            final link = _layerLink;
-                            final isMe = widget.isMe;
+                      //CompositedTransformTarget(
+                      //link: _layerLink,
+                      //child:
+                      ContextMenu(
+                        onOpen: () async {
+                          final isMe = widget.isMe;
 
-                            final onCopy = canCopy
-                                ? () => _copyMessage(widget.message)
-                                : null;
-                            final onDelete = canDelete
-                                ? () => _deleteMessage(widget.message)
-                                : null;
-                            final onSave = canSave
-                                ? () => _saveImage(widget.message)
-                                : null;
-                            final onForward = canForward
-                                ? () {
-                                    showPicker(
-                                      context: context,
-                                      mode: PickerMode.forward,
-                                      onSelected: (user) {
-                                        ConversationController.instance
-                                            .forwardMessage(
-                                              widget.message,
-                                              user,
-                                            );
-                                      },
-                                    );
-                                  }
-                                : null;
+                          final onCopy = canCopy
+                              ? () => _copyMessage(widget.message)
+                              : null;
+                          final onDelete = canDelete
+                              ? () => _deleteMessage(widget.message)
+                              : null;
+                          final onSave = canSave
+                              ? () => _saveImage(widget.message)
+                              : null;
+                          final onForward = canForward
+                              ? () {
+                                  showPicker(
+                                    context: context,
+                                    mode: PickerMode.forward,
+                                    onSelected: (user) {
+                                      ConversationController.instance
+                                          .forwardMessage(widget.message, user);
+                                    },
+                                  );
+                                }
+                              : null;
 
-                            await widget.onOpenMenu?.call();
+                          await widget.onOpenMenu?.call();
 
+                          if (!mounted) return;
+
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (!mounted) return;
 
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (!mounted) return;
+                            final box =
+                                _bubbleKey.currentContext!.findRenderObject()
+                                    as RenderBox;
+                            final offset = box.localToGlobal(Offset.zero);
+                            final size = box.size;
 
-                              ChatActionOverlayController.showFor(
-                                context: context,
-                                link: link,
-                                isMe: isMe,
-                                onCopy: onCopy,
-                                onDelete: onDelete,
-                                onSave: onSave,
-                                onForward: onForward,
-                              );
-                            });
-                          },
-                          child: Container(
-                            decoration: _hasBubbleBackground
-                                ? BoxDecoration(
-                                    color: bubbleBgColor,
-                                    borderRadius: radius,
-                                  )
-                                : null,
-                            padding: _hasBubbleBackground
-                                ? _bubblePadding()
-                                : EdgeInsets.zero,
-                            child: _buildContent(context),
-                          ),
+                            ChatActionOverlayController.showFor(
+                              context: context,
+                              anchorOffset: offset,
+                              anchorSize: size,
+                              isMe: isMe,
+                              onCopy: onCopy,
+                              onDelete: onDelete,
+                              onSave: onSave,
+                              onForward: onForward,
+                            );
+                          });
+                        },
+                        child: Container(
+                          decoration: _hasBubbleBackground
+                              ? BoxDecoration(
+                                  color: bubbleBgColor,
+                                  borderRadius: radius,
+                                )
+                              : null,
+                          padding: _hasBubbleBackground
+                              ? _bubblePadding()
+                              : EdgeInsets.zero,
+                          child: _buildContent(context),
                         ),
                       ),
+                      //),
 
                       // Desktop hover actions
+                      /*
                       if (isDesktop)
                         Positioned(
                           top: 8,
@@ -240,6 +246,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                             ),
                           ),
                         ),
+                       */
                     ],
                   ),
                 ),
@@ -440,8 +447,22 @@ class _MessageBubbleState extends State<MessageBubble> {
   }
 
   String _formatTime(DateTime time) {
+    final now = DateTime.now();
+
+    final isToday =
+        time.year == now.year && time.month == now.month && time.day == now.day;
+
     final h = time.hour.toString().padLeft(2, '0');
     final m = time.minute.toString().padLeft(2, '0');
-    return '$h:$m';
+
+    if (isToday) {
+      return '$h:$m';
+    }
+
+    final d = time.day.toString().padLeft(2, '0');
+    final mo = time.month.toString().padLeft(2, '0');
+    final y = time.year;
+
+    return '$y.$mo.$d $h:$m';
   }
 }

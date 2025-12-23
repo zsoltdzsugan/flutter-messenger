@@ -2,46 +2,68 @@ import 'package:flutter/material.dart';
 import 'package:messenger/view/home/chat/hover_context_menu.dart';
 
 class ChatActionOverlayController {
-  static bool isOpen = false;
   static OverlayEntry? _entry;
+  static bool get isOpen => _entry != null;
 
   static void showFor({
     required BuildContext context,
-    required LayerLink link,
+    required Offset anchorOffset,
+    required Size anchorSize,
     required bool isMe,
     VoidCallback? onDelete,
     VoidCallback? onSave,
     VoidCallback? onForward,
     VoidCallback? onCopy,
   }) {
-    isOpen = true;
-    hide();
+    hide(); // only one open
+
+    final overlay = Overlay.of(context, rootOverlay: true);
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    //final screenHeight = MediaQuery.of(context).size.height;
+
+    double? menuLeft;
+    double? menuRight;
+    const double gap = 8.0;
+    const double assumedMenuHeight =
+        48.0; // Adjust based on your HoverActions height
+
+    if (isMe) {
+      // Menu on left side of bubble
+      final bubbleLeft = anchorOffset.dx;
+      menuRight = screenWidth - bubbleLeft + gap;
+    } else {
+      // Menu on right side of bubble
+      final bubbleRight = anchorOffset.dx + anchorSize.width;
+      menuLeft = bubbleRight + gap;
+    }
+
+    final menuTop =
+        anchorOffset.dy + (anchorSize.height / 2) - (assumedMenuHeight / 2);
 
     _entry = OverlayEntry(
-      builder: (_) => Positioned.fill(
-        child: Stack(
+      builder: (_) {
+        return Stack(
           children: [
-            GestureDetector(behavior: HitTestBehavior.translucent, onTap: hide),
-            CompositedTransformFollower(
-              link: link,
-              showWhenUnlinked: false,
-
-              targetAnchor: isMe ? Alignment.centerLeft : Alignment.centerRight,
-
-              followerAnchor: isMe
-                  ? Alignment.centerRight
-                  : Alignment.centerLeft,
-
-              offset: isMe ? const Offset(-12, 2) : const Offset(12, 2),
-
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: hide,
+              ),
+            ),
+            Positioned(
+              left: menuLeft,
+              right: menuRight,
+              top: menuTop,
               child: Material(
                 color: Colors.transparent,
                 child: HoverActions(
-                  onDelete: onDelete == null
+                  isMe: isMe,
+                  onCopy: onCopy == null
                       ? null
                       : () {
                           hide();
-                          onDelete();
+                          onCopy();
                         },
                   onSave: onSave == null
                       ? null
@@ -55,25 +77,24 @@ class ChatActionOverlayController {
                           hide();
                           onForward();
                         },
-                  onCopy: onCopy == null
+                  onDelete: onDelete == null
                       ? null
                       : () {
                           hide();
-                          onCopy();
+                          onDelete();
                         },
                 ),
               ),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
 
-    Overlay.of(context, rootOverlay: true).insert(_entry!);
+    overlay.insert(_entry!);
   }
 
   static void hide() {
-    isOpen = false;
     _entry?.remove();
     _entry = null;
   }

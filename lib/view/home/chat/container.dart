@@ -97,15 +97,6 @@ class _ChatContainerState extends State<ChatContainer> {
                                     otherUserId: widget.otherUserId,
                                   ),
                                 ),
-                                /*
-                                Expanded(
-                                  child: MessageList(
-                                    key: ValueKey(widget.conversationId),
-                                    conversationId: widget.conversationId,
-                                    otherUserId: widget.otherUserId,
-                                  ),
-                                ),
-                                */
                                 TypingIndicator(
                                   conversationId: widget.conversationId,
                                 ),

@@ -237,40 +237,45 @@ class _MessageContainerState extends State<MessageContainer> {
   Widget build(BuildContext context) {
     final messages = _mergedMessages;
 
-    return ListView.builder(
-      controller: _scrollController,
-      reverse: true, // crucial for sane chat behavior
-      itemCount: messages.length + 1,
-      itemBuilder: (context, index) {
-        // Optional top loader row (appears when user scrolls up)
-        if (index == messages.length) {
-          if (!_hasMore) return const SizedBox(height: 24);
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Center(
-              child: _isLoadingOlder
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const SizedBox(height: 18),
-            ),
-          );
-        }
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return ListView.builder(
+          controller: _scrollController,
+          reverse: true, // crucial for sane chat behavior
+          itemCount: messages.length + 1,
+          itemBuilder: (context, index) {
+            // Optional top loader row (appears when user scrolls up)
+            if (index == messages.length) {
+              if (!_hasMore) return const SizedBox(height: 24);
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Center(
+                  child: _isLoadingOlder
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const SizedBox(height: 18),
+                ),
+              );
+            }
 
-        final m = messages[index];
-        final isMe = m.sender != widget.otherUserId;
-        final key = _keys.putIfAbsent(m.id, () => GlobalKey());
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          key: key,
-          child: MessageBubble(
-            message: m,
-            isMe: isMe,
-            otherUserId: widget.otherUserId,
-            onOpenMenu: () => _ensureVisible(m.id),
-          ),
+            final m = messages[index];
+            final isMe = m.sender != widget.otherUserId;
+            final key = _keys.putIfAbsent(m.id, () => GlobalKey());
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              key: key,
+              child: MessageBubble(
+                message: m,
+                isMe: isMe,
+                otherUserId: widget.otherUserId,
+                onOpenMenu: () => _ensureVisible(m.id),
+                constraints: constraints,
+              ),
+            );
+          },
         );
       },
     );
